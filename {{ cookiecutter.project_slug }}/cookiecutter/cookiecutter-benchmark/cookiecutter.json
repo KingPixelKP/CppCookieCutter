@@ -1,0 +1,10 @@
+{% raw %}
+{
+  "lib_name": "LibTemplate",
+  "lib_slug": "{{ cookiecutter.lib_name.lower().replace(' ', '_') }}",
+  "upper_lib_slug": "{{ cookiecutter.lib_slug.upper() }}",
+  "bench_name":  "{{ cookiecutter.lib_name }} Benchmark",
+  "bench_slug": "{{ cookiecutter.bench_name.lower().replace(' ', '_') }}",
+  "upper_bench_slug": "{{ cookiecutter.bench_slug.upper() }}"
+}
+{% endraw %}

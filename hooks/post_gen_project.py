@@ -20,3 +20,4 @@ def replace(find, replace):
         
 replace("__LIB_SLUG__", "{{ '{{ cookiecutter.lib_slug }}' }}")
 replace("__EXEC_SLUG__", "{{ '{{ cookiecutter.exec_slug }}' }}")
+replace("__BENCHMARK_SLUG__", "{{ '{{ cookiecutter.bench_slug }}' }}")
