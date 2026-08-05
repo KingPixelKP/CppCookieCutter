@@ -70,6 +70,10 @@ sed -i 's/cpptemplate/myproject/g; s/CPPTEMPLATE/MYPROJECT/g' CMakeLists.txt CMa
 > [!NOTE]
 > Replace `cpptemplate` and `CPPTEMPLATE` with your project's lowercase and uppercase names, respectively.
 
+## Authors
+
+__AUTHORS__
+
 ## Acknowledgements
 
 This project was generated from the **CppCookieCutter**.

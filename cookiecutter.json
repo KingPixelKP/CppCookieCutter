@@ -2,7 +2,7 @@
   "project_name": "CMakeTemplate",
   "project_slug": "{{ cookiecutter.project_name | lower | replace(' ', '_') | replace('-', '_') }}",
   "upper_project_slug": "{{ cookiecutter.project_slug | upper }}",
-  "author": "Anonymous",
+  "authors": "Anonymous",
   "_copy_without_render": [
     ".github",
     "docs/**"
