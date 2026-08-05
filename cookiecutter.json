@@ -1,0 +1,9 @@
+{
+  "project_name": "CMakeTemplate",
+  "project_slug": "{{ cookiecutter.project_name | lower | replace(' ', '_') }}",
+  "upper_project_slug": "{{ cookiecutter.project_slug | upper }}",
+  "author": "Anonymous",
+  "_copy_without_render": [
+    ".github"
+  ]
+}

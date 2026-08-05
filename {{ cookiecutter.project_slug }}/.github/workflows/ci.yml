@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  configure:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        preset: [debug, release]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux toolchain extras
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ninja-build lld
+
+      - name: Configure
+        run: cmake --preset ${{ matrix.preset }}
+
+      - name: Upload configure artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.os }}-${{ matrix.preset }}
+          path: build/${{ matrix.preset }}
+          if-no-files-found: error
+
+  build:
+    needs: configure
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        preset: [debug, release]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux toolchain extras
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ninja-build lld
+
+      - name: Download configure artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-${{ matrix.os }}-${{ matrix.preset }}
+          path: build/${{ matrix.preset }}
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.os }}-${{ matrix.preset }}
+          path: build/${{ matrix.preset }}
+          if-no-files-found: error
+
+  test:
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        preset: [debug, release]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux toolchain extras
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ninja-build lld
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-${{ matrix.os }}-${{ matrix.preset }}
+          path: build/${{ matrix.preset }}
+
+      - name: Test
+        run: ctest --preset ${{ matrix.preset }}

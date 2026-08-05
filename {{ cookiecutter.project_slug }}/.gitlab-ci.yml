@@ -1,0 +1,83 @@
+stages:
+  - configure
+  - build
+  - test
+
+default:
+  image: gcc:13
+  before_script:
+    - apt-get update
+    - apt-get install -y cmake ninja-build lld git
+  cache:
+    key: "${CI_PROJECT_NAME}-cpm"
+    paths:
+      - .cache/CPM
+
+variables:
+  CPM_SOURCE_CACHE: "${CI_PROJECT_DIR}/.cache/CPM"
+  GIT_SUBMODULE_STRATEGY: recursive
+
+.configure_template:
+  stage: configure
+  script:
+    - cmake --preset "${PRESET}"
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - "build/${PRESET}"
+
+.build_template:
+  stage: build
+  script:
+    - cmake --build --preset "${PRESET}"
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - "build/${PRESET}"
+
+.test_template:
+  stage: test
+  script:
+    - ctest --preset "${PRESET}"
+
+configure:debug:
+  extends: .configure_template
+  variables:
+    PRESET: debug
+
+configure:release:
+  extends: .configure_template
+  variables:
+    PRESET: release
+
+build:debug:
+  extends: .build_template
+  needs:
+    - job: configure:debug
+      artifacts: true
+  variables:
+    PRESET: debug
+
+build:release:
+  extends: .build_template
+  needs:
+    - job: configure:release
+      artifacts: true
+  variables:
+    PRESET: release
+
+test:debug:
+  extends: .test_template
+  needs:
+    - job: build:debug
+      artifacts: true
+  variables:
+    PRESET: debug
+
+test:release:
+  extends: .test_template
+  needs:
+    - job: build:release
+      artifacts: true
+  variables:
+    PRESET: release

@@ -1,0 +1,7 @@
+{% raw %}
+{
+  "lib_name": "LibTemplate",
+  "lib_slug": "{{ cookiecutter.lib_name.lower().replace(' ', '_') }}",
+  "upper_lib_slug": "{{ cookiecutter.lib_slug.upper() }}"
+}
+{% endraw %}
