@@ -1,4 +1,4 @@
-message(STATUS "Configuring \"Examples\"")
+message(STATUS "Configuring \"{% raw %}{{ cookiecutter.module_slug }}{% endraw %}\"")
 
 file(GLOB children RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "*")
 

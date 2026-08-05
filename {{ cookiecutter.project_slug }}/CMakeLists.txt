@@ -22,9 +22,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(${PROJECT_NAME_UPPER}_COMPILE_DEFINITIONS -Wall -Wextra -Wpedantic -Werror)
 set(${PROJECT_NAME_UPPER}_LINKER_DEFINITIONS -fuse-ld=lld)
 set(${PROJECT_NAME_UPPER}_SANITIZERS
-    ""
-    CACHE STRING
-    "Comma-separated list of sanitizers (e.g. address,undefined,thread)"
+  ""
+  CACHE STRING
+  "Comma-separated list of sanitizers (e.g. address,undefined,thread)"
 )
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
@@ -64,8 +64,6 @@ if(${PROJECT_NAME_UPPER}_BUILD_BENCHMARKS)
   include(benchmark)
 endif()
 
-add_subdirectory(libs)
-
 if(${PROJECT_NAME_UPPER}_BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif()
@@ -73,6 +71,37 @@ endif()
 if(${PROJECT_NAME_UPPER}_BUILD_BENCHMARKS)
   add_subdirectory(benchmarks)
 endif()
+
+# Find modules
+set(EXCLUDED_MODULES
+  src
+  include
+  cmake
+  packages
+  test
+  benchmarks
+  examples
+)
+
+file(GLOB children RELATIVE "${CMAKE_SOURCE_DIR}" "*")
+
+foreach(child IN LISTS children)
+  if(NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/${child}")
+    continue()
+  endif()
+
+  if(child IN_LIST EXCLUDED_MODULES)
+    continue()
+  endif()
+
+  if(child MATCHES "^\\.")
+    continue()
+  endif()
+
+  if(EXISTS "${CMAKE_SOURCE_DIR}/${child}/CMakeLists.txt")
+    add_subdirectory("${child}")
+  endif()
+endforeach()
 
 # Main Executable
 add_executable(${PROJECT_NAME} src/main.cpp)

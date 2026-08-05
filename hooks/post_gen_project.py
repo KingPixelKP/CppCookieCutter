@@ -15,9 +15,9 @@ def replace(find, replace):
 
     for old in paths:
         new = old.with_name(replace)
-        print(f"{old} -> {new}")
         shutil.move(old, new)
         
 replace("__LIB_SLUG__", "{{ '{{ cookiecutter.lib_slug }}' }}")
 replace("__EXEC_SLUG__", "{{ '{{ cookiecutter.exec_slug }}' }}")
 replace("__BENCHMARK_SLUG__", "{{ '{{ cookiecutter.bench_slug }}' }}")
+replace("__MODULE_SLUG__", "{{ '{{ cookiecutter.module_slug }}' }}")
