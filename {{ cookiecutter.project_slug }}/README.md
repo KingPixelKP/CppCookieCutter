@@ -41,4 +41,5 @@ For a quick rename, you can use:
 sed -i 's/cpptemplate/myproject/g; s/CPPTEMPLATE/MYPROJECT/g' CMakeLists.txt CMakePresets.json
 ```
 
-**Note:** Obviously you must replace *cpptemplate* and *CPPTEMPLATE* with the name of your project
+> [!NOTE]
+> Obviously you must replace *cpptemplate* and *CPPTEMPLATE* with the name of your project
