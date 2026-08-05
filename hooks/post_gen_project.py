@@ -42,5 +42,5 @@ authors = "{{ cookiecutter.authors }}".split(",")
 
 replace_text(
     "__AUTHORS__",
-    "\n".join(f"- {a.strip()}" for a in authors)
+    "\n".join(f"* {a.strip()}" for a in authors)
 )
