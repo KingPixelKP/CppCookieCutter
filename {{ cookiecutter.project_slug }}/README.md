@@ -1,26 +1,46 @@
-# CPPTemplate
+# {{ cookiecutter.project_name }}
 
-This serves as my cmake template for c++ projects.
+A modern C++23 project template built with CMake.
 
-## What It Includes
+## Features
 
-- [`CMake presets`](./CMakePresets.json) for `Debug`, `RelWithDebInfo`, `ASan/UBSan`, and `clang-tidy`
-- Reusable `libs/` layout for project libraries
-- Optional `examples/` and `benchmarks/` directories
-- CPM-managed dependencies split into small files under `packages/`
-- Test helpers for GoogleTest-based unit tests
-- Optional `clang-tidy` and `cppcheck` integration
-- A `format` target when `clang-format` is available
-- [`GitHub Actions`](./.github/workflows/ci.yml) and [`GitLab CI`](./.gitlab-ci.yml) templates for configure, build, and test
-- Cookiecutter templates that may be instanced with [`create.py`](./create.py)
+* `CMakePresets.json` with presets for:
+  * `Debug`
+  * `RelWithDebInfo`
+  * Address/Undefined Sanitizers (`ASan`/`UBSan`)
+  * `clang-tidy`
+* Reusable `libs/` layout for project libraries
+* Optional `examples/` and `benchmarks/` modules
+* CPM-based dependency management with packages organized under `packages/`
+* GoogleTest integration for unit testing
+* Optional `clang-tidy` and `cppcheck` support
+* `format` build target when `clang-format` is available
+* GitHub Actions and GitLab CI templates
+* Cookiecutter templates with a `create.py` helper for generating additional libraries, executables, benchmarks, and other project components
 
-## Common Commands
+## Building
+
+Configure the project:
 
 ```bash
-cmake --preset debug # configure
-cmake --build --preset debug # build
-ctest --preset debug # test!
+cmake --preset debug
 ```
+
+Build:
+
+```bash
+cmake --build --preset debug
+```
+
+Run the test suite:
+
+```bash
+ctest --preset debug
+```
+
+## Sanitizers
+
+Configure and build with AddressSanitizer and UndefinedBehaviorSanitizer:
 
 ```bash
 cmake --preset asan
@@ -28,18 +48,32 @@ cmake --build --preset asan
 ctest --preset asan
 ```
 
+## Static Analysis
+
+Configure and build with `clang-tidy` enabled:
+
 ```bash
 cmake --preset clang-tidy
 cmake --build --preset clang-tidy
 ```
 
-If you rename the project in `project(...)`, also update any project-prefixed cache variables in `CMakePresets.json`, such as `CPPTEMPLATE_SANITIZERS` and `CPPTEMPLATE_ENABLE_CLANG_TIDY`.
+## Renaming the Project
 
-For a quick rename, you can use:
+If you change the project name in the `project(...)` declaration, update any project-specific cache variables in `CMakePresets.json` (for example, `CPPTEMPLATE_SANITIZERS` and `CPPTEMPLATE_ENABLE_CLANG_TIDY`).
+
+A quick way to do this is:
 
 ```bash
 sed -i 's/cpptemplate/myproject/g; s/CPPTEMPLATE/MYPROJECT/g' CMakeLists.txt CMakePresets.json
 ```
 
 > [!NOTE]
-> Obviously you must replace *cpptemplate* and *CPPTEMPLATE* with the name of your project
+> Replace `cpptemplate` and `CPPTEMPLATE` with your project's lowercase and uppercase names, respectively.
+
+## Acknowledgements
+
+This project was generated from the **CppCookieCutter**.
+
+The template repository contains updates, additional generators, and documentation:
+
+* https://github.com/KingPixelKP/CppTemplate.git

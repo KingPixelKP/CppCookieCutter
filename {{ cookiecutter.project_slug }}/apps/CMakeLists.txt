@@ -1,4 +1,4 @@
-message(STATUS "Configuring Apps/Executables")
+message(STATUS "Configuring \"Apps/Executables\"")
 
 file(GLOB children RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "*")
 

@@ -2,11 +2,14 @@ cmake_minimum_required(VERSION 3.25)
 project({{ cookiecutter.project_slug }} VERSION 1.0.0 LANGUAGES CXX)
 
 string(TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
+set(${PROJECT_NAME_UPPER}_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+
 option(${PROJECT_NAME_UPPER}_BUILD_TESTS "Build tests" ON)
 option(${PROJECT_NAME_UPPER}_BUILD_EXAMPLES "Build example programs" ON)
 option(${PROJECT_NAME_UPPER}_BUILD_BENCHMARKS "Build benchmarks" OFF)
 option(${PROJECT_NAME_UPPER}_ENABLE_CLANG_TIDY "Run clang-tidy during builds" OFF)
 option(${PROJECT_NAME_UPPER}_ENABLE_CPPCHECK "Run cppcheck during builds" OFF)
+option(${PROJECT_NAME_UPPER}_BUILD_DOCS "Build documentation" OFF)
 
 if(${PROJECT_NAME_UPPER}_BUILD_TESTS)
   enable_testing()
@@ -72,6 +75,10 @@ if(${PROJECT_NAME_UPPER}_BUILD_BENCHMARKS)
   add_subdirectory(benchmarks)
 endif()
 
+if(${PROJECT_NAME_UPPER}_BUILD_DOCS)
+    add_subdirectory(docs)
+endif()
+
 # Find modules
 set(EXCLUDED_MODULES
   src
@@ -81,6 +88,7 @@ set(EXCLUDED_MODULES
   test
   benchmarks
   examples
+  docs
 )
 
 file(GLOB children RELATIVE "${CMAKE_SOURCE_DIR}" "*")

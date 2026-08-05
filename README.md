@@ -1,5 +1,37 @@
-# CPPTemplate
+# CppTemplate
 
-This serves as my cmake template for c++ projects.
+This repository contains a Cookiecutter template for modern C++ projects using CMake.
 
-To read more [go to]({{%20cookiecutter.project_slug%20}}/README.md)
+The generated project will be created in the `{{ cookiecutter.project_slug }}/` directory.
+
+## Generating a Project
+
+```bash
+cookiecutter .
+```
+
+or
+
+```bash
+cookiecutter /path/to/this/template
+```
+
+## Generated Project
+
+The generated project includes:
+
+* `CMakePresets.json` with presets for `Debug`, `RelWithDebInfo`, Address/Undefined Sanitizers, and `clang-tidy`
+* A reusable `libs/` layout for project libraries
+* Optional `examples/` and `benchmarks/` modules
+* CPM-managed dependencies organized under `packages/`
+* GoogleTest integration for unit tests
+* Optional `clang-tidy` and `cppcheck` support
+* A `format` target when `clang-format` is available
+* GitHub Actions and GitLab CI templates
+* Additional Cookiecutter templates for generating libraries, executables, benchmarks, and other project components
+
+After generating the project, refer to:
+
+```text
+{{ cookiecutter.project_slug }}/README.md
+```

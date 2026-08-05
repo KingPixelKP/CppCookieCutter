@@ -1,7 +1,7 @@
 {% raw %}
 {
   "exec_name": "ExecTemplate",
-  "exec_slug": "{{ cookiecutter.exec_name.lower().replace(' ', '_') }}",
+  "exec_slug": "{{ cookiecutter.exec_name.lower().replace(' ', '_') | replace('-', '_') }}",
   "upper_exec_slug": "{{ cookiecutter.exec_slug.upper() }}"
 }
 {% endraw %}
