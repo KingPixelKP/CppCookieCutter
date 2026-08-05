@@ -1,3 +1,5 @@
+message(STATUS "Configuring Static Library: \"{% raw %}{{ cookiecutter.lib_name }}{% endraw %}\"")
+
 add_library({% raw %}{{ cookiecutter.lib_slug }}{% endraw %} STATIC
     {% raw %}{{ cookiecutter.lib_slug }}{% endraw %}.cpp
 )
