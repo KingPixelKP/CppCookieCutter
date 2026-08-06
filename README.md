@@ -16,6 +16,12 @@ or
 cookiecutter /path/to/this/template
 ```
 
+or 
+
+```bash
+uvx cookiecutter gh:KingPixelKP/CppTemplate
+```
+
 ## Generated Project
 
 The generated project includes:
