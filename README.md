@@ -1,4 +1,4 @@
-# CppTemplate
+# CppCookieCutter
 
 This repository contains a Cookiecutter template for modern C++ projects using CMake.
 

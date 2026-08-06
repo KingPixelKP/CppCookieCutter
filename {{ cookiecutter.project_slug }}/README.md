@@ -80,4 +80,4 @@ This project was generated from the **CppCookieCutter**.
 
 The template repository contains updates, additional generators, and documentation:
 
-* https://github.com/KingPixelKP/CppTemplate.git
+* https://github.com/KingPixelKP/CppCookieCutter.git
