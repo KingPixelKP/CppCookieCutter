@@ -1,5 +1,6 @@
 from pathlib import Path
 import shutil
+import subprocess
 
 ROOT = Path.cwd()
 
@@ -40,7 +41,8 @@ replace_path("__MODULE_SLUG__", "{{ '{{ cookiecutter.module_slug }}' }}")
 
 authors = "{{ cookiecutter.authors }}".split(",")
 
-replace_text(
-    "__AUTHORS__",
-    "\n".join(f"* {a.strip()}" for a in authors)
-)
+replace_text("__AUTHORS__", "\n".join(f"* {a.strip()}" for a in authors))
+
+process = subprocess.call(["git", "init"], stdout=subprocess.PIPE)
+process = subprocess.call(["git", "add", "."], stdout=subprocess.PIPE)
+process = subprocess.call(["git", "commit", "-m", "Adding Template"], stdout=subprocess.PIPE)
