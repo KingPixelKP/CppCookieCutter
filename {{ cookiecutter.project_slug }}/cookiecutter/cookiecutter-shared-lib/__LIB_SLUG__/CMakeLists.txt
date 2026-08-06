@@ -1,5 +1,4 @@
-message(STATUS "Configuring Shared Library: \"{% raw %}{{ cookiecutter.lib_name }}{% endraw %}\" for \"{{ cookiecutter.project_name }}
-\"")
+message(STATUS "Configuring Shared Library: \"{% raw %}{{ cookiecutter.lib_name }}{% endraw %}\" for \"{{ cookiecutter.project_name }}\"")
 
 add_library({% raw %}{{ cookiecutter.lib_slug }}{% endraw %} SHARED
     {% raw %}{{ cookiecutter.lib_slug }}{% endraw %}.cpp
