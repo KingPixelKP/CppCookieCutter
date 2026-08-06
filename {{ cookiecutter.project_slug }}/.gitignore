@@ -1,4 +1,4 @@
-/build/
+/.build/
 /.cache/
 /Testing/
 .DS_Store

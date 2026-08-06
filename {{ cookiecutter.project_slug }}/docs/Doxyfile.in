@@ -17,7 +17,7 @@ EXTRACT_PRIVATE        = NO
 EXTRACT_STATIC         = YES
 
 EXCLUDE                = \
-    @PROJECT_ROOT_DIR@/build \
+    @PROJECT_ROOT_DIR@/.build \
     @PROJECT_ROOT_DIR@/docs \
     @PROJECT_ROOT_DIR@/.git \
     @PROJECT_ROOT_DIR@/cookiecutter

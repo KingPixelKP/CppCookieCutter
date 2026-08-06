@@ -27,7 +27,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-${{ matrix.os }}-${{ matrix.preset }}
-          path: build/${{ matrix.preset }}
+          path: .build/${{ matrix.preset }}
           if-no-files-found: error
 
   build:
@@ -50,7 +50,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-${{ matrix.os }}-${{ matrix.preset }}
-          path: build/${{ matrix.preset }}
+          path: .build/${{ matrix.preset }}
 
       - name: Build
         run: cmake --build --preset ${{ matrix.preset }}
@@ -59,7 +59,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-${{ matrix.os }}-${{ matrix.preset }}
-          path: build/${{ matrix.preset }}
+          path: .build/${{ matrix.preset }}
           if-no-files-found: error
 
   test:
@@ -82,7 +82,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-${{ matrix.os }}-${{ matrix.preset }}
-          path: build/${{ matrix.preset }}
+          path: .build/${{ matrix.preset }}
 
       - name: Test
         run: ctest --preset ${{ matrix.preset }}
