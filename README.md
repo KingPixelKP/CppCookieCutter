@@ -33,6 +33,7 @@ The generated project includes:
 * GoogleTest integration for unit tests
 * Optional `clang-tidy` and `cppcheck` support
 * A `format` target when `clang-format` is available
+* A Docker/Podman-based dependency validation helper for clean-room builds
 * GitHub Actions and GitLab CI templates
 * Additional Cookiecutter templates for generating libraries, executables, benchmarks, and other project components
 

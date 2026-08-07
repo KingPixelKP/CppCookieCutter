@@ -15,6 +15,7 @@ A modern C++23 project template built with CMake.
 * GoogleTest integration for unit testing
 * Optional `clang-tidy` and `cppcheck` support
 * `format` build target when `clang-format` is available
+* A Docker/Podman-based dependency validation helper for clean-room builds
 * GitHub Actions and GitLab CI templates
 * Cookiecutter templates with a `create.py` helper for generating additional libraries, executables, benchmarks, and other project components
 
@@ -37,6 +38,35 @@ Run the test suite:
 ```bash
 ctest --preset debug
 ```
+
+## Dependency Validation
+
+To verify that your dependency declarations are enough for a fresh Linux
+environment, run the project inside the bundled container check:
+
+```bash
+scripts/check-dependencies.sh
+```
+
+This builds a local image from `docker/dependency-check.Dockerfile`, copies the
+project into a clean Ubuntu-based container, and runs:
+
+```bash
+cmake --preset debug
+cmake --build --preset debug
+ctest --preset debug
+```
+
+Useful variations:
+
+```bash
+scripts/check-dependencies.sh --preset release
+scripts/check-dependencies.sh --skip-tests
+scripts/check-dependencies.sh --container-tool podman
+```
+
+This is especially helpful after adding or updating files under `packages/`, or when you want to confirm the project does not rely on undeclared host packages. It complements CI, but only validates the Linux container toolchain defined in
+`docker/dependency-check.Dockerfile`.
 
 ## Sanitizers
 
