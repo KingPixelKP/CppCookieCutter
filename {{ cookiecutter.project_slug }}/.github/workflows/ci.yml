@@ -5,84 +5,111 @@ on:
   pull_request:
 
 jobs:
-  configure:
-    runs-on: ${{ matrix.os }}
+  linux:
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        preset: [debug, release]
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute image name
+        id: image
+        env:
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
+        run: |
+          set -euo pipefail
+          image="ghcr.io/${OWNER,,}/${REPO,,}-ci"
+          echo "name=${image}" >> "${GITHUB_OUTPUT}"
+
+      - name: Detect CI image changes
+        id: image_changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          compare_ref=""
+
+          if [[ "${EVENT_NAME}" == "pull_request" ]]; then
+            compare_ref="${BASE_SHA}"
+          else
+            compare_ref="${BEFORE_SHA}"
+          fi
+
+          changed=0
+          if [[ -z "${compare_ref}" || "${compare_ref}" =~ ^0+$ ]]; then
+            changed=1
+          elif git diff --name-only "${compare_ref}" "${HEAD_SHA}" -- \
+            docker/ci.Dockerfile \
+            .github/workflows/ci.yml \
+            .github/workflows/ci-image.yml \
+            scripts/install-deps.sh \
+            scripts/check-dependencies.sh | grep -q .; then
+            changed=1
+          fi
+
+          echo "changed=${changed}" >> "${GITHUB_OUTPUT}"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull published CI image
+        id: pull_image
+        continue-on-error: true
+        run: docker pull "${{ steps.image.outputs.name }}:latest"
+
+      - name: Rebuild CI image locally
+        if: steps.image_changes.outputs.changed == '1' || steps.pull_image.outcome != 'success'
+        run: |
+          docker build \
+            --file docker/ci.Dockerfile \
+            --tag "${{ steps.image.outputs.name }}:latest" \
+            .
+
+      - name: Publish refreshed CI image
+        if: github.event_name == 'push' && github.ref_name == github.event.repository.default_branch && (steps.image_changes.outputs.changed == '1' || steps.pull_image.outcome != 'success')
+        run: |
+          docker tag "${{ steps.image.outputs.name }}:latest" "${{ steps.image.outputs.name }}:${{ github.sha }}"
+          docker push "${{ steps.image.outputs.name }}:${{ github.sha }}"
+          docker push "${{ steps.image.outputs.name }}:latest"
+
+      - name: Configure, build, and test in CI image
+        run: |
+          scripts/check-dependencies.sh \
+            --image "${{ steps.image.outputs.name }}:latest" \
+            --preset "${{ matrix.preset }}" \
+            --skip-image-build
+
+  macos:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
         preset: [debug, release]
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install Linux toolchain extras
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y ninja-build lld
 
       - name: Configure
         run: cmake --preset ${{ matrix.preset }}
 
-      - name: Upload configure artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-${{ matrix.os }}-${{ matrix.preset }}
-          path: .build/${{ matrix.preset }}
-          if-no-files-found: error
-
-  build:
-    needs: configure
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-        preset: [debug, release]
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Linux toolchain extras
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y ninja-build lld
-
-      - name: Download configure artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-${{ matrix.os }}-${{ matrix.preset }}
-          path: .build/${{ matrix.preset }}
-
       - name: Build
         run: cmake --build --preset ${{ matrix.preset }}
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-${{ matrix.os }}-${{ matrix.preset }}
-          path: .build/${{ matrix.preset }}
-          if-no-files-found: error
-
-  test:
-    needs: build
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-        preset: [debug, release]
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Linux toolchain extras
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y ninja-build lld
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-${{ matrix.os }}-${{ matrix.preset }}
-          path: .build/${{ matrix.preset }}
 
       - name: Test
         run: ctest --preset ${{ matrix.preset }}

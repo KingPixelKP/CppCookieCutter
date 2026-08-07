@@ -12,6 +12,7 @@ Options:
   --preset <name>           CMake preset to use (default: debug)
   --image <tag>             Container image tag to build/use
   --container-tool <name>   Container runtime to use (docker or podman)
+  --skip-image-build        Reuse an existing image instead of building one
   --skip-tests              Configure and build, but do not run ctest
   -h, --help                Show this help text
 EOF
@@ -19,7 +20,8 @@ EOF
 
 container_tool=""
 preset="debug"
-image_tag="{{ cookiecutter.project_slug }}-dependency-check"
+image_tag="{{ cookiecutter.project_slug }}-ci"
+build_image=1
 run_tests=1
 
 while [[ $# -gt 0 ]]; do
@@ -35,6 +37,10 @@ while [[ $# -gt 0 ]]; do
     --container-tool)
       container_tool="${2:?missing value for --container-tool}"
       shift 2
+      ;;
+    --skip-image-build)
+      build_image=0
+      shift
       ;;
     --skip-tests)
       run_tests=0
@@ -64,18 +70,22 @@ if [[ -z "${container_tool}" ]]; then
 fi
 
 project_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-dockerfile="${project_dir}/docker/dependency-check.Dockerfile"
+dockerfile="${project_dir}/docker/ci.Dockerfile"
 
-if [[ ! -f "${dockerfile}" ]]; then
+if [[ "${build_image}" == "1" && ! -f "${dockerfile}" ]]; then
   echo "Missing Dockerfile: ${dockerfile}" >&2
   exit 1
 fi
 
-echo "Building dependency check image '${image_tag}' with ${container_tool}..."
-"${container_tool}" build \
-  --file "${dockerfile}" \
-  --tag "${image_tag}" \
-  "${project_dir}"
+if [[ "${build_image}" == "1" ]]; then
+  echo "Building CI image '${image_tag}' with ${container_tool}..."
+  "${container_tool}" build \
+    --file "${dockerfile}" \
+    --tag "${image_tag}" \
+    "${project_dir}"
+else
+  echo "Reusing existing image '${image_tag}' with ${container_tool}..."
+fi
 
 echo "Running clean-room build with preset '${preset}'..."
 "${container_tool}" run --rm \

@@ -1,0 +1,63 @@
+name: Publish CI Image
+
+on:
+  push:
+    paths:
+      - docker/ci.Dockerfile
+      - .github/workflows/ci-image.yml
+      - .github/workflows/ci.yml
+      - scripts/install-deps.sh
+      - scripts/check-dependencies.sh
+  pull_request:
+    paths:
+      - docker/ci.Dockerfile
+      - .github/workflows/ci-image.yml
+      - .github/workflows/ci.yml
+      - scripts/install-deps.sh
+      - scripts/check-dependencies.sh
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute image name
+        id: image
+        env:
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
+        run: |
+          set -euo pipefail
+          image="ghcr.io/${OWNER,,}/${REPO,,}-ci"
+          echo "name=${image}" >> "${GITHUB_OUTPUT}"
+
+      - name: Log in to GHCR
+        if: github.event_name == 'push' && github.ref_name == github.event.repository.default_branch
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image
+        run: |
+          docker build \
+            --file docker/ci.Dockerfile \
+            --tag "${{ steps.image.outputs.name }}:${{ github.sha }}" \
+            --tag "${{ steps.image.outputs.name }}:latest" \
+            .
+
+      - name: Smoke test image
+        run: docker run --rm "${{ steps.image.outputs.name }}:${{ github.sha }}" cmake --version
+
+      - name: Push image
+        if: github.event_name == 'push' && github.ref_name == github.event.repository.default_branch
+        run: |
+          docker push "${{ steps.image.outputs.name }}:${{ github.sha }}"
+          docker push "${{ steps.image.outputs.name }}:latest"

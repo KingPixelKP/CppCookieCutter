@@ -1,21 +1,44 @@
 stages:
+  - image
   - configure
   - build
   - test
 
+variables:
+  CI_JOB_IMAGE: "${CI_REGISTRY_IMAGE}/ci:latest"
+  CPM_SOURCE_CACHE: "${CI_PROJECT_DIR}/.cache/CPM"
+  GIT_SUBMODULE_STRATEGY: recursive
+
 default:
-  image: gcc:13
-  before_script:
-    - apt-get update
-    - apt-get install -y cmake ninja-build lld git
+  image: "${CI_JOB_IMAGE}"
   cache:
     key: "${CI_PROJECT_NAME}-cpm"
     paths:
       - .cache/CPM
 
-variables:
-  CPM_SOURCE_CACHE: "${CI_PROJECT_DIR}/.cache/CPM"
-  GIT_SUBMODULE_STRATEGY: recursive
+build:ci-image:
+  stage: image
+  image: docker:27
+  services:
+    - docker:27-dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  before_script:
+    - echo "${CI_REGISTRY_PASSWORD}" | docker login "${CI_REGISTRY}" --username "${CI_REGISTRY_USER}" --password-stdin
+  script:
+    - docker build --file docker/ci.Dockerfile --tag "${CI_REGISTRY_IMAGE}/ci:${CI_COMMIT_SHA}" --tag "${CI_JOB_IMAGE}" .
+    - docker run --rm "${CI_REGISTRY_IMAGE}/ci:${CI_COMMIT_SHA}" cmake --version
+    - docker push "${CI_REGISTRY_IMAGE}/ci:${CI_COMMIT_SHA}"
+    - docker push "${CI_JOB_IMAGE}"
+  rules:
+    - changes:
+        - docker/ci.Dockerfile
+        - .gitlab-ci.yml
+        - scripts/install-deps.sh
+        - scripts/check-dependencies.sh
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: manual
+    - when: never
 
 .configure_template:
   stage: configure

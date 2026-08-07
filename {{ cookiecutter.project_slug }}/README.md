@@ -24,8 +24,12 @@ A modern C++23 project template built with CMake.
 Configure the project:
 
 ```bash
+scripts/install-deps.sh
 cmake --preset debug
 ```
+
+`scripts/install-deps.sh` currently automates the Linux package setup for
+Debian/Ubuntu and Arch-based systems.
 
 Build:
 
@@ -42,14 +46,14 @@ ctest --preset debug
 ## Dependency Validation
 
 To verify that your dependency declarations are enough for a fresh Linux
-environment, run the project inside the bundled container check:
+environment, run the project inside the bundled CI container:
 
 ```bash
 scripts/check-dependencies.sh
 ```
 
-This builds a local image from `docker/dependency-check.Dockerfile`, copies the
-project into a clean Ubuntu-based container, and runs:
+This builds a local image from `docker/ci.Dockerfile`, copies the project into
+a clean Ubuntu-based container, and runs:
 
 ```bash
 cmake --preset debug
@@ -65,8 +69,26 @@ scripts/check-dependencies.sh --skip-tests
 scripts/check-dependencies.sh --container-tool podman
 ```
 
-This is especially helpful after adding or updating files under `packages/`, or when you want to confirm the project does not rely on undeclared host packages. It complements CI, but only validates the Linux container toolchain defined in
-`docker/dependency-check.Dockerfile`.
+This is especially helpful after adding or updating files under `packages/`, or
+when you want to confirm the project does not rely on undeclared host packages.
+It complements CI, but only validates the Linux container toolchain defined in
+`docker/ci.Dockerfile`.
+
+The system-package source of truth is `scripts/install-deps.sh`. The CI image
+build runs that script during `docker build`, so if you add a new
+`find_package(...)` dependency that requires a preinstalled system package, you
+should update `scripts/install-deps.sh`. That change will automatically trigger
+the CI image refresh in both GitHub Actions and GitLab.
+
+The generated GitHub Actions workflows also reuse this same image. A dedicated
+`Publish CI Image` workflow refreshes the GHCR image when the Dockerfile or CI
+image wiring changes, and the main Linux CI jobs pull that image instead of
+rebuilding it on every run.
+
+The generated GitLab pipeline follows the same pattern with the GitLab
+Container Registry. Its `build:ci-image` job only rebuilds the shared CI image
+when `docker/ci.Dockerfile` or related CI-image files change, and the regular
+pipeline stages reuse that published image.
 
 ## Sanitizers
 
