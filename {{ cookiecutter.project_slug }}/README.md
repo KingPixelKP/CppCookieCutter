@@ -66,7 +66,12 @@ ctest --preset tsan
 cmake --preset coverage
 cmake --build --preset coverage
 ctest --preset coverage
+
+cmake --build --preset coverage --target coverage-report
 ```
+
+When `gcovr` is available, the `coverage-report` target writes HTML and XML
+reports under `.build/coverage/coverage/`.
 
 ## CPM Package Lock
 

@@ -35,6 +35,7 @@ The generated project includes:
 * Optional `clang-tidy` and `cppcheck` support
 * Optional install/package export support for generated libraries and executables
 * A `format` target when `clang-format` is available
+* A `coverage-report` target for coverage-enabled builds when `gcovr` is available
 * A Docker/Podman-based dependency validation helper for clean-room builds
 * GitHub Actions and GitLab CI templates
 * Additional Cookiecutter templates for generating libraries, executables, benchmarks, and other project components

@@ -219,4 +219,5 @@ if(${PROJECT_NAME_UPPER}_INSTALL)
   )
 endif()
 
+add_coverage_report_target()
 add_format_target()

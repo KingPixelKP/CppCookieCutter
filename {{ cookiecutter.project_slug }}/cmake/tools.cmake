@@ -200,6 +200,58 @@ function(install_project_headers INCLUDE_DIR)
 endfunction()
 
 #[[
+Adds a `coverage-report` target for coverage-enabled builds when `gcovr` is
+available. The target runs tests, then writes HTML and XML reports under
+`${CMAKE_BINARY_DIR}/coverage`.
+]]#
+function(add_coverage_report_target)
+    if(NOT ${PROJECT_NAME_UPPER}_ENABLE_COVERAGE)
+        return()
+    endif()
+
+    find_program(GCOVR_PROGRAM gcovr)
+    set(_gcovr_command)
+
+    if(GCOVR_PROGRAM)
+        set(_gcovr_command "${GCOVR_PROGRAM}")
+    else()
+        find_program(UVX_PROGRAM uvx)
+        if(UVX_PROGRAM)
+            set(_gcovr_command "${UVX_PROGRAM}" gcovr)
+        else()
+            message(WARNING "gcovr not found and uvx is unavailable; skipping coverage-report target")
+            return()
+        endif()
+    endif()
+
+    set(_coverage_dir "${CMAKE_BINARY_DIR}/coverage")
+    set(_coverage_html "${_coverage_dir}/index.html")
+    set(_coverage_xml "${_coverage_dir}/coverage.xml")
+
+    add_custom_target(
+        coverage-report
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${_coverage_dir}"
+        COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+        COMMAND ${_gcovr_command}
+            --root "${CMAKE_SOURCE_DIR}"
+            --object-directory "${CMAKE_BINARY_DIR}"
+            --html-details "${_coverage_html}"
+            --xml-pretty --output "${_coverage_xml}"
+            --exclude "${CMAKE_BINARY_DIR}/.*"
+            --exclude ".*/generated/.*"
+            --exclude ".*/_autogen/.*"
+            --exclude-directories "${CMAKE_BINARY_DIR}/_deps"
+            --exclude-directories "${CMAKE_BINARY_DIR}/package-lock"
+        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+        COMMENT "Running tests and generating coverage reports in ${_coverage_dir}"
+        USES_TERMINAL
+        VERBATIM
+    )
+
+    message(STATUS "Added \"coverage-report\" build target")
+endfunction()
+
+#[[
 Adds a `format` target that runs `clang-format` over project C++ sources.
 
 The target is created only when `clang-format` is available and at least one
