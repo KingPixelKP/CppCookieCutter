@@ -19,7 +19,7 @@ cookiecutter /path/to/this/template
 or 
 
 ```bash
-uvx cookiecutter gh:KingPixelKP/CppTemplate
+uvx cookiecutter gh:KingPixelKP/CppCookieCutter
 ```
 
 ## Generated Project
