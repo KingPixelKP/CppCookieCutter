@@ -12,9 +12,9 @@ This project was generated in `{{ cookiecutter.project_type }}` mode.
   * Address/Undefined Sanitizers (`ASan`/`UBSan`)
   * `clang-tidy`
 * Reusable `libs/` layout for project libraries
-* Optional `examples/` and `benchmarks/` modules
-* CPM-based dependency management with package snippets organized under `packages/`
-* Optional CPM package locking via `packages/package-lock.cmake`
+* Optional [`examples/`](./examples/) and [`benchmarks/`](./benchmarks/) modules
+* CPM-based dependency management with package snippets organized under [`packages/`](./packages/)
+* Optional CPM package locking via [`packages/package-lock.cmake`](./packages/package-lock.cmake)
 * GoogleTest integration for unit testing
 * Optional `clang-tidy` and `cppcheck` support
 * `format` build target when `clang-format` is available
@@ -26,7 +26,7 @@ This project was generated in `{{ cookiecutter.project_type }}` mode.
 * A Docker/Podman-based dependency validation helper for clean-room builds
 * GitHub Actions and GitLab CI templates
 {% endif %}
-* Cookiecutter templates with a `create.py` helper for generating additional libraries, executables, benchmarks, and other project components
+* Cookiecutter templates with a [`create.py`](./create.py) helper for generating additional libraries, executables, benchmarks, and other project components
 
 ## Building
 
@@ -37,12 +37,12 @@ scripts/install-deps.sh
 cmake --preset debug
 ```
 
-`scripts/install-deps.sh` currently automates the Linux package setup for
+[`scripts/install-deps.sh`](./scripts/install-deps.sh) currently automates the Linux package setup for
 Debian/Ubuntu and Arch-based systems.
 
-The default project only pulls in `fmt` plus testing and benchmark dependencies
+The default project only pulls in [`fmt`](./packages/fmt.cmake) plus testing and benchmark dependencies
 when those targets are enabled. Additional CPM package snippets live under
-`packages/` and can be included from `CMakeLists.txt` as your project grows.
+[`packages/`](./packages/) and can be included from [`CMakeLists.txt`](./CMakeLists.txt) as your project grows.
 
 Build:
 
@@ -76,7 +76,7 @@ Generate or refresh the checked-in CPM lockfile:
 cmake --build --preset debug --target package-lock
 ```
 
-This writes `packages/package-lock.cmake`. To make the root build consume that
+This writes [`packages/package-lock.cmake`](./packages/package-lock.cmake). To make the root build consume that
 lockfile during configure, enable:
 
 ```bash
@@ -124,7 +124,7 @@ environment, run the project inside the bundled CI container:
 scripts/check-dependencies.sh
 ```
 
-This builds a local image from `docker/ci.Dockerfile`, copies the project into
+This builds a local image from [`docker/ci.Dockerfile`](./docker/ci.Dockerfile), copies the project into
 a clean Ubuntu-based container, and runs:
 
 ```bash
@@ -141,12 +141,12 @@ scripts/check-dependencies.sh --skip-tests
 scripts/check-dependencies.sh --container-tool podman
 ```
 
-This is especially helpful after adding or updating files under `packages/`, or
+This is especially helpful after adding or updating files under [`packages/`](./packages/), or
 when you want to confirm the project does not rely on undeclared host packages.
 It complements CI, but only validates the Linux container toolchain defined in
-`docker/ci.Dockerfile`.
+[`docker/ci.Dockerfile`](./docker/ci.Dockerfile).
 
-The system-package source of truth is `scripts/install-deps.sh`. The CI image
+The system-package source of truth is [`scripts/install-deps.sh`](./scripts/install-deps.sh). The CI image
 build runs that script during `docker build`, so if you add a new
 `find_package(...)` dependency that requires a preinstalled system package, you
 should update `scripts/install-deps.sh`. That change will automatically trigger
@@ -159,7 +159,7 @@ rebuilding it on every run.
 
 The generated GitLab pipeline follows the same pattern with the GitLab
 Container Registry. Its `build:ci-image` job only rebuilds the shared CI image
-when `docker/ci.Dockerfile` or related CI-image files change, and the regular
+when [`docker/ci.Dockerfile`](./docker/ci.Dockerfile) or related CI-image files change, and the regular
 pipeline stages reuse that published image.
 {% endif %}
 
@@ -184,7 +184,7 @@ cmake --build --preset clang-tidy
 
 ## Renaming the Project
 
-If you change the project name in the `project(...)` declaration, update any project-specific cache variables in `CMakePresets.json` (for example, `CPPTEMPLATE_SANITIZERS` and `CPPTEMPLATE_ENABLE_CLANG_TIDY`).
+If you change the project name in the `project(...)` declaration, update any project-specific cache variables in [`CMakePresets.json`](./CMakePresets.json) (for example, `CPPTEMPLATE_SANITIZERS` and `CPPTEMPLATE_ENABLE_CLANG_TIDY`).
 
 A quick way to do this is:
 
@@ -202,7 +202,7 @@ __AUTHORS__
 {% if cookiecutter.license != "None" %}
 ## License
 
-See `LICENSE`.
+See [`LICENSE`](./LICENSE).
 {% endif %}
 
 ## Acknowledgements
