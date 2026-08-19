@@ -28,20 +28,20 @@
     "n"
   ],
   "include_docs": [
-    "n",
-    "y"
+    "y",
+    "n"
   ],
   "include_install_rules": [
     "y",
     "n"
   ],
   "initialize_git": [
-    "n",
-    "y"
+    "y",
+    "n"
   ],
   "create_initial_commit": [
-    "n",
-    "y"
+    "y",
+    "n"
   ],
   "_copy_without_render": [
     ".github",
