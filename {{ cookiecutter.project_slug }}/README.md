@@ -12,6 +12,7 @@ A modern C++23 project template built with CMake.
 * Reusable `libs/` layout for project libraries
 * Optional `examples/` and `benchmarks/` modules
 * CPM-based dependency management with packages organized under `packages/`
+* Optional CPM package locking via `packages/package-lock.cmake`
 * GoogleTest integration for unit testing
 * Optional `clang-tidy` and `cppcheck` support
 * `format` build target when `clang-format` is available
@@ -41,6 +42,21 @@ Run the test suite:
 
 ```bash
 ctest --preset debug
+```
+
+## CPM Package Lock
+
+Generate or refresh the checked-in CPM lockfile:
+
+```bash
+cmake --build --preset debug --target package-lock
+```
+
+This writes `packages/package-lock.cmake`. To make the root build consume that
+lockfile during configure, enable:
+
+```bash
+cmake --preset debug -D{{ cookiecutter.upper_project_slug }}_USE_PACKAGE_LOCK=ON
 ```
 
 ## Dependency Validation

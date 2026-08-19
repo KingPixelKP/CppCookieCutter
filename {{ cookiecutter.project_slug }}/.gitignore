@@ -2,3 +2,5 @@
 /.cache/
 /Testing/
 .DS_Store
+compile_commands.json
+__pycache__
