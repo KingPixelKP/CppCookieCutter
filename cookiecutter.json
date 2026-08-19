@@ -1,8 +1,31 @@
 {
   "project_name": "CMakeTemplate",
+  "project_description": "A modern C++ project built with CMake.",
   "project_slug": "{{ cookiecutter.project_name | lower | replace(' ', '_') | replace('-', '_') }}",
   "upper_project_slug": "{{ cookiecutter.project_slug | upper }}",
+  "project_version": "0.1.0",
+  "cpp_standard": [
+    "23",
+    "20",
+    "26"
+  ],
   "authors": "Anonymous",
+  "include_ci": [
+    "y",
+    "n"
+  ],
+  "include_docs": [
+    "n",
+    "y"
+  ],
+  "initialize_git": [
+    "n",
+    "y"
+  ],
+  "create_initial_commit": [
+    "n",
+    "y"
+  ],
   "_copy_without_render": [
     ".github",
     "docs/**"

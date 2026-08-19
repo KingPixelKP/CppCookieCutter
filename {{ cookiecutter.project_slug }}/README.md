@@ -1,6 +1,6 @@
 # {{ cookiecutter.project_name }}
 
-A modern C++23 project template built with CMake.
+{{ cookiecutter.project_description }}
 
 ## Features
 
@@ -11,13 +11,18 @@ A modern C++23 project template built with CMake.
   * `clang-tidy`
 * Reusable `libs/` layout for project libraries
 * Optional `examples/` and `benchmarks/` modules
-* CPM-based dependency management with packages organized under `packages/`
+* CPM-based dependency management with package snippets organized under `packages/`
 * Optional CPM package locking via `packages/package-lock.cmake`
 * GoogleTest integration for unit testing
 * Optional `clang-tidy` and `cppcheck` support
 * `format` build target when `clang-format` is available
+{% if cookiecutter.include_docs == "y" %}
+* Optional Doxygen documentation support
+{% endif %}
+{% if cookiecutter.include_ci == "y" %}
 * A Docker/Podman-based dependency validation helper for clean-room builds
 * GitHub Actions and GitLab CI templates
+{% endif %}
 * Cookiecutter templates with a `create.py` helper for generating additional libraries, executables, benchmarks, and other project components
 
 ## Building
@@ -31,6 +36,10 @@ cmake --preset debug
 
 `scripts/install-deps.sh` currently automates the Linux package setup for
 Debian/Ubuntu and Arch-based systems.
+
+The default project only pulls in `fmt` plus testing and benchmark dependencies
+when those targets are enabled. Additional CPM package snippets live under
+`packages/` and can be included from `CMakeLists.txt` as your project grows.
 
 Build:
 
@@ -59,6 +68,17 @@ lockfile during configure, enable:
 cmake --preset debug -D{{ cookiecutter.upper_project_slug }}_USE_PACKAGE_LOCK=ON
 ```
 
+{% if cookiecutter.include_docs == "y" %}
+## Documentation
+
+Build the Doxygen docs with:
+
+```bash
+cmake --build --preset debug --target docs
+```
+{% endif %}
+
+{% if cookiecutter.include_ci == "y" %}
 ## Dependency Validation
 
 To verify that your dependency declarations are enough for a fresh Linux
@@ -105,6 +125,7 @@ The generated GitLab pipeline follows the same pattern with the GitLab
 Container Registry. Its `build:ci-image` job only rebuilds the shared CI image
 when `docker/ci.Dockerfile` or related CI-image files change, and the regular
 pipeline stages reuse that published image.
+{% endif %}
 
 ## Sanitizers
 

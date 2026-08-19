@@ -34,6 +34,30 @@ def replace_text(find, replace):
             path.write_text(content.replace(find, replace))
 
 
+def remove_path(path: Path):
+    if not path.exists():
+        return
+
+    if path.is_dir():
+        shutil.rmtree(path)
+    else:
+        path.unlink()
+
+
+def try_run(*args: str) -> bool:
+    try:
+        subprocess.run(
+            args,
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return False
+
+    return True
+
+
 replace_path("__LIB_SLUG__", "{{ '{{ cookiecutter.lib_slug }}' }}")
 replace_path("__EXEC_SLUG__", "{{ '{{ cookiecutter.exec_slug }}' }}")
 replace_path("__BENCHMARK_SLUG__", "{{ '{{ cookiecutter.bench_slug }}' }}")
@@ -43,6 +67,17 @@ authors = "{{ cookiecutter.authors }}".split(",")
 
 replace_text("__AUTHORS__", "\n".join(f"* {a.strip()}" for a in authors))
 
-process = subprocess.call(["git", "init"], stdout=subprocess.PIPE)
-process = subprocess.call(["git", "add", "."], stdout=subprocess.PIPE)
-process = subprocess.call(["git", "commit", "-m", "Adding Template"], stdout=subprocess.PIPE)
+if "{{ cookiecutter.include_ci }}" != "y":
+    remove_path(template_root / ".github")
+    remove_path(template_root / ".gitlab-ci.yml")
+    remove_path(template_root / "docker")
+    remove_path(template_root / "scripts" / "check-dependencies.sh")
+
+if "{{ cookiecutter.include_docs }}" != "y":
+    remove_path(template_root / "docs")
+
+if "{{ cookiecutter.initialize_git }}" == "y":
+    if try_run("git", "init"):
+        if "{{ cookiecutter.create_initial_commit }}" == "y":
+            if try_run("git", "add", "."):
+                try_run("git", "commit", "-m", "Initial commit")

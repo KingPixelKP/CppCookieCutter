@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project({{ cookiecutter.project_slug }} VERSION 1.0.0 LANGUAGES CXX)
+project({{ cookiecutter.project_slug }} VERSION {{ cookiecutter.project_version }} LANGUAGES CXX)
 
 string(TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
 set(${PROJECT_NAME_UPPER}_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
@@ -9,7 +9,7 @@ option(${PROJECT_NAME_UPPER}_BUILD_EXAMPLES "Build example programs" ON)
 option(${PROJECT_NAME_UPPER}_BUILD_BENCHMARKS "Build benchmarks" OFF)
 option(${PROJECT_NAME_UPPER}_ENABLE_CLANG_TIDY "Run clang-tidy during builds" OFF)
 option(${PROJECT_NAME_UPPER}_ENABLE_CPPCHECK "Run cppcheck during builds" OFF)
-option(${PROJECT_NAME_UPPER}_BUILD_DOCS "Build documentation" OFF)
+option(${PROJECT_NAME_UPPER}_BUILD_DOCS "Build documentation" {% if cookiecutter.include_docs == "y" %}ON{% else %}OFF{% endif %})
 option(${PROJECT_NAME_UPPER}_USE_PACKAGE_LOCK "Use the CPM package lock at packages/package-lock.cmake" OFF)
 
 if(${PROJECT_NAME_UPPER}_BUILD_TESTS)
@@ -17,7 +17,7 @@ if(${PROJECT_NAME_UPPER}_BUILD_TESTS)
   include(GoogleTest)
 endif()
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD {{ cookiecutter.cpp_standard }})
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -31,7 +31,7 @@ endif()
 
 # includes
 set(${PROJECT_NAME_UPPER}_COMPILE_DEFINITIONS -Wall -Wextra -Wpedantic -Werror)
-set(${PROJECT_NAME_UPPER}_LINKER_DEFINITIONS -fuse-ld=lld)
+set(${PROJECT_NAME_UPPER}_LINKER_DEFINITIONS "")
 set(${PROJECT_NAME_UPPER}_SANITIZERS
   ""
   CACHE STRING
@@ -130,7 +130,7 @@ if(${PROJECT_NAME_UPPER}_BUILD_BENCHMARKS)
   add_subdirectory(benchmarks)
 endif()
 
-if(${PROJECT_NAME_UPPER}_BUILD_DOCS)
+if(${PROJECT_NAME_UPPER}_BUILD_DOCS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/docs/CMakeLists.txt")
     add_subdirectory(docs)
 endif()
 
