@@ -149,7 +149,7 @@ It complements CI, but only validates the Linux container toolchain defined in
 The system-package source of truth is [`scripts/install-deps.sh`](./scripts/install-deps.sh). The CI image
 build runs that script during `docker build`, so if you add a new
 `find_package(...)` dependency that requires a preinstalled system package, you
-should update `scripts/install-deps.sh`. That change will automatically trigger
+should update [`scripts/install-deps.sh`](./scripts/install-deps.sh). That change will automatically trigger
 the CI image refresh in both GitHub Actions and GitLab.
 
 The generated GitHub Actions workflows also reuse this same image. A dedicated
