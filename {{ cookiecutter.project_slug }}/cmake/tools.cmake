@@ -48,9 +48,20 @@ function(configure_target TARGET_NAME)
 
     if(_target_type STREQUAL "INTERFACE_LIBRARY")
         set(_scope INTERFACE)
+        set(_feature_scope INTERFACE)
+    elseif(_target_type STREQUAL "EXECUTABLE")
+        set(_scope PRIVATE)
+        set(_feature_scope PRIVATE)
     else()
         set(_scope PRIVATE)
+        set(_feature_scope PUBLIC)
     endif()
+
+    target_compile_features(
+        ${TARGET_NAME}
+        ${_feature_scope}
+        cxx_std_${CMAKE_CXX_STANDARD}
+    )
 
     set(_compile_options ${${PROJECT_NAME_UPPER}_COMPILE_DEFINITIONS})
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
@@ -89,6 +100,26 @@ function(configure_target TARGET_NAME)
             -fsanitize=${${PROJECT_NAME_UPPER}_SANITIZERS}
         )
     endif()
+
+    if(${PROJECT_NAME_UPPER}_ENABLE_COVERAGE)
+        if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+            target_compile_options(
+                ${TARGET_NAME}
+                ${_scope}
+                --coverage
+                -O0
+                -g
+            )
+
+            target_link_options(
+                ${TARGET_NAME}
+                ${_scope}
+                --coverage
+            )
+        else()
+            message(WARNING "Coverage requested but unsupported for compiler ${CMAKE_CXX_COMPILER_ID}")
+        endif()
+    endif()
 endfunction()
 
 #[[
@@ -110,7 +141,62 @@ function(add_project_test TARGET_NAME)
     add_executable(${TARGET_NAME} ${TEST_SOURCES})
     target_link_libraries(${TARGET_NAME} PRIVATE ${TEST_LIBRARIES} GTest::gtest_main)
     configure_target(${TARGET_NAME})
-    gtest_discover_tests(${TARGET_NAME})
+    gtest_discover_tests(${TARGET_NAME} DISCOVERY_MODE PRE_TEST)
+endfunction()
+
+#[[
+Installs a project target into standard locations and adds it to the exported
+package target set when install rules are enabled.
+
+Arguments:
+    TARGET_NAME: Target to install.
+]]#
+function(install_project_target TARGET_NAME)
+    if(NOT ${PROJECT_NAME_UPPER}_INSTALL)
+        return()
+    endif()
+
+    get_target_property(_target_type ${TARGET_NAME} TYPE)
+
+    if(_target_type STREQUAL "INTERFACE_LIBRARY")
+        install(
+            TARGETS ${TARGET_NAME}
+            EXPORT ${PROJECT_NAME}Targets
+            INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        )
+        return()
+    endif()
+
+    install(
+        TARGETS ${TARGET_NAME}
+        EXPORT ${PROJECT_NAME}Targets
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    )
+endfunction()
+
+#[[
+Installs a public include directory into the project's include destination when
+install rules are enabled.
+
+Arguments:
+    INCLUDE_DIR: Directory containing public headers.
+]]#
+function(install_project_headers INCLUDE_DIR)
+    if(NOT ${PROJECT_NAME_UPPER}_INSTALL)
+        return()
+    endif()
+
+    if(NOT IS_DIRECTORY "${INCLUDE_DIR}")
+        message(FATAL_ERROR "install_project_headers expected a directory, got \"${INCLUDE_DIR}\"")
+    endif()
+
+    install(
+        DIRECTORY "${INCLUDE_DIR}/"
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    )
 endfunction()
 
 #[[

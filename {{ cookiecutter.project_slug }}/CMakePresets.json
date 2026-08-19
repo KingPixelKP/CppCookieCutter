@@ -37,6 +37,20 @@
       }
     },
     {
+      "name": "tsan",
+      "inherits": "debug",
+      "cacheVariables": {
+        "{{ cookiecutter.upper_project_slug }}_SANITIZERS": "thread"
+      }
+    },
+    {
+      "name": "coverage",
+      "inherits": "debug",
+      "cacheVariables": {
+        "{{ cookiecutter.upper_project_slug }}_ENABLE_COVERAGE": "ON"
+      }
+    },
+    {
       "name": "clang-tidy",
       "inherits": "debug",
       "cacheVariables": {
@@ -58,6 +72,16 @@
     {
       "name": "asan",
       "configurePreset": "asan",
+      "jobs": 0
+    },
+    {
+      "name": "tsan",
+      "configurePreset": "tsan",
+      "jobs": 0
+    },
+    {
+      "name": "coverage",
+      "configurePreset": "coverage",
       "jobs": 0
     },
     {
@@ -84,6 +108,20 @@
     {
       "name": "asan",
       "configurePreset": "asan",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "tsan",
+      "configurePreset": "tsan",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "coverage",
+      "configurePreset": "coverage",
       "output": {
         "outputOnFailure": true
       }

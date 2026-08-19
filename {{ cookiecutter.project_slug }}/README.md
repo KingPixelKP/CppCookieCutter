@@ -16,6 +16,7 @@
 * GoogleTest integration for unit testing
 * Optional `clang-tidy` and `cppcheck` support
 * `format` build target when `clang-format` is available
+* Extra `tsan` and `coverage` CMake presets for concurrency debugging and coverage runs
 {% if cookiecutter.include_docs == "y" %}
 * Optional Doxygen documentation support
 {% endif %}
@@ -51,6 +52,18 @@ Run the test suite:
 
 ```bash
 ctest --preset debug
+```
+
+Additional presets:
+
+```bash
+cmake --preset tsan
+cmake --build --preset tsan
+ctest --preset tsan
+
+cmake --preset coverage
+cmake --build --preset coverage
+ctest --preset coverage
 ```
 
 ## CPM Package Lock

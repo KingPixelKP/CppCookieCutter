@@ -9,6 +9,7 @@ option(${PROJECT_NAME_UPPER}_BUILD_EXAMPLES "Build example programs" ON)
 option(${PROJECT_NAME_UPPER}_BUILD_BENCHMARKS "Build benchmarks" OFF)
 option(${PROJECT_NAME_UPPER}_ENABLE_CLANG_TIDY "Run clang-tidy during builds" OFF)
 option(${PROJECT_NAME_UPPER}_ENABLE_CPPCHECK "Run cppcheck during builds" OFF)
+option(${PROJECT_NAME_UPPER}_ENABLE_COVERAGE "Enable coverage instrumentation" OFF)
 option(${PROJECT_NAME_UPPER}_BUILD_DOCS "Build documentation" {% if cookiecutter.include_docs == "y" %}ON{% else %}OFF{% endif %})
 option(${PROJECT_NAME_UPPER}_USE_PACKAGE_LOCK "Use the CPM package lock at packages/package-lock.cmake" OFF)
 
@@ -77,6 +78,8 @@ set(_package_lock_configure_args
   -D${PROJECT_NAME_UPPER}_BUILD_DOCS=OFF
   -D${PROJECT_NAME_UPPER}_ENABLE_CLANG_TIDY=OFF
   -D${PROJECT_NAME_UPPER}_ENABLE_CPPCHECK=OFF
+  -D${PROJECT_NAME_UPPER}_ENABLE_COVERAGE=OFF
+  -D${PROJECT_NAME_UPPER}_INSTALL=${${PROJECT_NAME_UPPER}_INSTALL}
 )
 
 if(CMAKE_GENERATOR)

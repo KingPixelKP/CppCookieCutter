@@ -40,6 +40,7 @@ apt_packages=(
   clang
   cmake
   git
+  gcovr
   lld
   ninja-build
   pkg-config
@@ -52,6 +53,7 @@ pacman_packages=(
   clang
   cmake
   git
+  gcovr
   lld
   ninja
   pkgconf

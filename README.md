@@ -27,6 +27,7 @@ uvx cookiecutter gh:KingPixelKP/CppCookieCutter
 The generated project includes:
 
 * `CMakePresets.json` with presets for `Debug`, `RelWithDebInfo`, Address/Undefined Sanitizers, and `clang-tidy`
+* Additional `tsan` and `coverage` presets
 * A reusable `libs/` layout for project libraries
 * Optional `examples/` and `benchmarks/` modules
 * CPM package snippets organized under `packages/`, with only the default sample dependencies loaded up front
