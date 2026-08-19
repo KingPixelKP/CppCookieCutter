@@ -1,6 +1,7 @@
 from pathlib import Path
 import shutil
 import subprocess
+from datetime import datetime
 
 ROOT = Path.cwd()
 
@@ -81,6 +82,15 @@ if "{{ cookiecutter.include_ci }}" != "y":
 
 if "{{ cookiecutter.include_docs }}" != "y":
     remove_path(template_root / "docs")
+
+project_type = "{{ cookiecutter.project_type }}"
+
+if project_type == "app":
+    remove_path(template_root / "libs" / "math")
+    remove_path(template_root / "examples" / "math")
+    remove_path(template_root / "benchmarks" / "math")
+elif project_type == "library":
+    remove_path(template_root / "src")
 
 if "{{ cookiecutter.initialize_git }}" == "y":
     if try_run("git", "init"):

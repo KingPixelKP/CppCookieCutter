@@ -4,3 +4,7 @@
 .DS_Store
 compile_commands.json
 __pycache__
+*.gcda
+*.gcno
+*.profraw
+*.profdata

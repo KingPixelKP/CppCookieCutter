@@ -2,6 +2,8 @@
 
 {{ cookiecutter.project_description }}
 
+This project was generated in `{{ cookiecutter.project_type }}` mode.
+
 ## Features
 
 * `CMakePresets.json` with presets for:
@@ -91,6 +93,27 @@ cmake --build --preset debug --target docs
 ```
 {% endif %}
 
+{% if cookiecutter.include_install_rules == "y" %}
+## Install And Package Export
+
+Install the project to a local prefix with:
+
+```bash
+cmake --preset release
+cmake --build --preset release
+cmake --install .build/release --prefix ./install
+```
+
+{% if cookiecutter.project_type != "app" %}
+Consumers can then use:
+
+```cmake
+find_package({{ cookiecutter.project_slug }} CONFIG REQUIRED)
+target_link_libraries(my_target PRIVATE {{ cookiecutter.project_slug }}::math)
+```
+{% endif %}
+{% endif %}
+
 {% if cookiecutter.include_ci == "y" %}
 ## Dependency Validation
 
@@ -175,6 +198,12 @@ sed -i 's/cpptemplate/myproject/g; s/CPPTEMPLATE/MYPROJECT/g' CMakeLists.txt CMa
 ## Authors
 
 __AUTHORS__
+
+{% if cookiecutter.license != "None" %}
+## License
+
+See `LICENSE`.
+{% endif %}
 
 ## Acknowledgements
 

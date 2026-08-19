@@ -4,6 +4,11 @@
   "project_slug": "{{ cookiecutter.project_name | lower | replace(' ', '_') | replace('-', '_') }}",
   "upper_project_slug": "{{ cookiecutter.project_slug | upper }}",
   "project_version": "0.1.0",
+  "project_type": [
+    "hybrid",
+    "library",
+    "app"
+  ],
   "cpp_standard": [
     "23",
     "20",
@@ -25,6 +30,10 @@
   "include_docs": [
     "n",
     "y"
+  ],
+  "include_install_rules": [
+    "y",
+    "n"
   ],
   "initialize_git": [
     "n",

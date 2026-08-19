@@ -5,13 +5,19 @@ string(TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
 set(${PROJECT_NAME_UPPER}_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 option(${PROJECT_NAME_UPPER}_BUILD_TESTS "Build tests" ON)
-option(${PROJECT_NAME_UPPER}_BUILD_EXAMPLES "Build example programs" ON)
+option(${PROJECT_NAME_UPPER}_BUILD_EXAMPLES "Build example programs" {% if cookiecutter.project_type == "app" %}OFF{% else %}ON{% endif %})
 option(${PROJECT_NAME_UPPER}_BUILD_BENCHMARKS "Build benchmarks" OFF)
 option(${PROJECT_NAME_UPPER}_ENABLE_CLANG_TIDY "Run clang-tidy during builds" OFF)
 option(${PROJECT_NAME_UPPER}_ENABLE_CPPCHECK "Run cppcheck during builds" OFF)
 option(${PROJECT_NAME_UPPER}_ENABLE_COVERAGE "Enable coverage instrumentation" OFF)
 option(${PROJECT_NAME_UPPER}_BUILD_DOCS "Build documentation" {% if cookiecutter.include_docs == "y" %}ON{% else %}OFF{% endif %})
+option(${PROJECT_NAME_UPPER}_INSTALL "Enable install and package export rules" {% if cookiecutter.include_install_rules == "y" %}ON{% else %}OFF{% endif %})
 option(${PROJECT_NAME_UPPER}_USE_PACKAGE_LOCK "Use the CPM package lock at packages/package-lock.cmake" OFF)
+
+if(${PROJECT_NAME_UPPER}_INSTALL)
+  include(GNUInstallDirs)
+  include(CMakePackageConfigHelpers)
+endif()
 
 if(${PROJECT_NAME_UPPER}_BUILD_TESTS)
   enable_testing()
@@ -169,12 +175,48 @@ foreach(child IN LISTS children)
   endif()
 endforeach()
 
+{% if cookiecutter.project_type in ["app", "hybrid"] %}
 # Main Executable
 add_executable(${PROJECT_NAME} src/main.cpp)
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
+{% if cookiecutter.project_type == "hybrid" %}
   math
+{% endif %}
   fmt::fmt
 )
 configure_target(${PROJECT_NAME})
+install_project_target(${PROJECT_NAME})
+{% endif %}
+
+if(${PROJECT_NAME_UPPER}_INSTALL)
+  set(_package_config_install_dir "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
+
+  configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/project-config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+    INSTALL_DESTINATION "${_package_config_install_dir}"
+  )
+
+  write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+  )
+
+  install(
+    EXPORT ${PROJECT_NAME}Targets
+    FILE "${PROJECT_NAME}Targets.cmake"
+    NAMESPACE ${PROJECT_NAME}::
+    DESTINATION "${_package_config_install_dir}"
+  )
+
+  install(
+    FILES
+      "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+      "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+    DESTINATION "${_package_config_install_dir}"
+  )
+endif()
+
 add_format_target()
