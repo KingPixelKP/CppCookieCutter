@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import argparse
+import shutil
 import subprocess
 import sys
 
@@ -31,6 +32,18 @@ TEMPLATES = {
 }
 
 
+def resolve_cookiecutter_command() -> list[str]:
+    if shutil.which("cookiecutter"):
+        return ["cookiecutter"]
+
+    if shutil.which("uvx"):
+        return ["uvx", "cookiecutter"]
+
+    raise FileNotFoundError(
+        "Neither 'cookiecutter' nor 'uvx' is available on PATH."
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Generate a project component."
@@ -54,23 +67,28 @@ def main() -> int:
         help="Extra cookiecutter key=value arguments.",
     )
 
-    args = parser.parse_args()
+    args, unknown = parser.parse_known_args()
 
     template, output = TEMPLATES[args.kind]
 
     output.mkdir(exist_ok=True)
 
-    cmd = [
-        "cookiecutter",
+    try:
+        cmd = [
+        *resolve_cookiecutter_command(),
         str(template),
         "--output-dir",
         str(output),
-    ]
+        ]
+    except FileNotFoundError as error:
+        print(error, file=sys.stderr)
+        return 1
 
     if args.no_input:
         cmd.append("--no-input")
 
     cmd.extend(args.extra)
+    cmd.extend(unknown)
 
     return subprocess.run(cmd).returncode
 
