@@ -40,39 +40,21 @@ apt_packages=(
   clang
   cmake
   git
-  libasound2-dev
-  libegl1-mesa-dev
-  libgl1-mesa-dev
-  libudev-dev
-  libwayland-dev
-  libxkbcommon-dev
   lld
   ninja-build
   pkg-config
-  wayland-protocols
-  xorg-dev
 )
 
 pacman_packages=(
-  alsa-lib
   base-devel
   bash
   ca-certificates
   clang
   cmake
   git
-  libxcursor
-  libx11
-  libxinerama
-  libxi
-  libxkbcommon
-  libxrandr
   lld
-  mesa
   ninja
   pkgconf
-  wayland
-  xorgproto
 )
 
 sudo_cmd=()
@@ -101,7 +83,8 @@ if command -v brew >/dev/null 2>&1; then
   cat <<'EOF' >&2
 Homebrew was detected, but this script currently only automates the Debian/Ubuntu
 and Arch Linux package sets. Install the equivalent development packages for
-your platform, then rerun the build.
+your platform, then rerun the build. If you opt into packages such as `raylib`,
+install their platform-specific system dependencies as well.
 EOF
   exit 1
 fi
@@ -109,6 +92,6 @@ fi
 if [[ "${ci_mode}" == "1" ]]; then
   echo "No supported package manager found for CI dependency installation." >&2
 else
-  echo "No supported package manager found. This script currently automates Debian/Ubuntu and Arch installs." >&2
+  echo "No supported package manager found. This script currently automates Debian/Ubuntu and Arch installs for the default dependency set." >&2
 fi
 exit 1

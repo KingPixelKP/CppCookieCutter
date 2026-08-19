@@ -113,13 +113,6 @@ add_custom_target(package-lock
 
 # Packages
 include(fmt)
-include(spdlog)
-include(abseil)
-include(pugixml)
-include(yamlcpp)
-include(nlohmannjson)
-include(raylib)
-include(entt)
 
 if(${PROJECT_NAME_UPPER}_BUILD_TESTS)
   include(gtest)
