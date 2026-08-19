@@ -10,6 +10,14 @@
     "26"
   ],
   "authors": "Anonymous",
+  "license": [
+    "None",
+    "MIT",
+    "Apache-2.0",
+    "BSD-3-Clause",
+    "Unlicense",
+    "Proprietary"
+  ],
   "include_ci": [
     "y",
     "n"

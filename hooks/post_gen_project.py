@@ -64,8 +64,14 @@ replace_path("__BENCHMARK_SLUG__", "{{ '{{ cookiecutter.bench_slug }}' }}")
 replace_path("__MODULE_SLUG__", "{{ '{{ cookiecutter.module_slug }}' }}")
 
 authors = "{{ cookiecutter.authors }}".split(",")
+authors_raw = "{{ cookiecutter.authors }}"
 
 replace_text("__AUTHORS__", "\n".join(f"* {a.strip()}" for a in authors))
+replace_text("__COPYRIGHT_HOLDER__", authors_raw)
+replace_text("__COPYRIGHT_YEAR__", str(datetime.now().year))
+
+if "{{ cookiecutter.license }}" == "None":
+    remove_path(template_root / "LICENSE")
 
 if "{{ cookiecutter.include_ci }}" != "y":
     remove_path(template_root / ".github")

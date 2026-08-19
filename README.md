@@ -45,6 +45,7 @@ The template also prompts for a few practical project settings:
 * `project_description` for the generated README
 * `project_version` for the root `project(...)` version
 * `cpp_standard` for the generated `CMakeLists.txt`
+* `license`, including `None`, for the generated `LICENSE`
 * `include_ci` to keep or remove the CI/container scaffolding
 * `include_docs` to keep or remove the Doxygen scaffolding
 * `initialize_git` and `create_initial_commit` to make Git setup opt-in instead of automatic
