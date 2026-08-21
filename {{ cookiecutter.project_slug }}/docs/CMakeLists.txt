@@ -11,7 +11,7 @@ configure_file(
     @ONLY
 )
 
-add_custom_target(docs
+add_custom_target(${PROJECT_NAME}_docs
     COMMAND ${DOXYGEN_EXECUTABLE} "${CMAKE_CURRENT_BINARY_DIR}/Doxyfile"
     WORKING_DIRECTORY "${PROJECT_ROOT_DIR}"
     COMMENT "Generating API documentation"
