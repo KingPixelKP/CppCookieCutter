@@ -276,8 +276,6 @@ function(add_format_target)
         _format_directories
         src
         libs
-        examples
-        benchmarks
     )
 
     foreach(_format_directory IN LISTS FORMAT_DIRECTORIES)
@@ -332,16 +330,5 @@ macro(include_test)
     if(${PROJECT_NAME_UPPER}_BUILD_TESTS)
         message(STATUS "Configuring tests")
         add_subdirectory(test)
-    endif()
-endmacro()
-
-#[[
-Includes the `benchmark` directory when
-`${PROJECT_NAME_UPPER}_BUILD_BENCHMARKS` is enabled.
-#]]
-macro(include_benchmark)
-    if(${PROJECT_NAME_UPPER}_BUILD_BENCHMARKS)
-        message(STATUS "Configuring benchmarks")
-        add_subdirectory(benchmark)
     endif()
 endmacro()

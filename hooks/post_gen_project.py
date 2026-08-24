@@ -87,8 +87,6 @@ project_type = "{{ cookiecutter.project_type }}"
 
 if project_type == "app":
     remove_path(template_root / "libs" / "math")
-    remove_path(template_root / "examples" / "math")
-    remove_path(template_root / "benchmarks" / "math")
 elif project_type == "library":
     remove_path(template_root / "src")
 

@@ -12,7 +12,8 @@ This project was generated in `{{ cookiecutter.project_type }}` mode.
   * Address/Undefined Sanitizers (`ASan`/`UBSan`)
   * `clang-tidy`
 * Reusable `libs/` layout for project libraries
-* Optional [`examples/`](./examples/) and [`benchmarks/`](./benchmarks/) modules
+* Per-package `example/` and `benchmark/` discovery for optional example and benchmark binaries
+* Reusable `package()` and `workspace()` CMake helpers for component and workspace discovery
 * CPM-based dependency management with package snippets organized under [`packages/`](./packages/)
 * Optional CPM package locking via [`packages/package-lock.cmake`](./packages/package-lock.cmake)
 * GoogleTest integration for unit testing
@@ -26,7 +27,6 @@ This project was generated in `{{ cookiecutter.project_type }}` mode.
 * A Docker/Podman-based dependency validation helper for clean-room builds
 * GitHub Actions and GitLab CI templates
 {% endif %}
-* Cookiecutter templates with a [`create.py`](./create.py) helper for generating additional libraries, executables, benchmarks, and other project components
 
 ## Building
 
@@ -41,8 +41,13 @@ cmake --preset debug
 Debian/Ubuntu and Arch-based systems.
 
 The default project only pulls in [`fmt`](./packages/fmt.cmake) plus testing and benchmark dependencies
-when those targets are enabled. Additional CPM package snippets live under
-[`packages/`](./packages/) and can be included from [`CMakeLists.txt`](./CMakeLists.txt) as your project grows.
+when those targets are enabled. Examples and benchmarks are discovered from each package's
+`example/` and `benchmark/` directories, and additional CPM package snippets live under
+[`packages/`](./packages/) for inclusion from [`CMakeLists.txt`](./CMakeLists.txt) as your project grows.
+
+To add a new library package, create a new folder under [`libs/`](./libs/) with a minimal
+[`CMakeLists.txt`](./libs/math/CMakeLists.txt) that calls `package(...)`, then add `src/`,
+`include/`, `test/`, `example/`, or `benchmark/` directories as needed.
 
 Build:
 

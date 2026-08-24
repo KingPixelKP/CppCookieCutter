@@ -1,7 +1,0 @@
-{% raw %}
-{
-  "module_name": "ModuleTemplate",
-  "module_slug": "{{ cookiecutter.module_name.lower().replace(' ', '_') | replace('-', '_') }}",
-  "upper_module_slug": "{{ cookiecutter.module_slug.upper() }}"
-}
-{% endraw %}

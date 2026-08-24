@@ -1,1 +1,0 @@
-#include "{% raw %}{{ cookiecutter.lib_slug }}{% endraw %}/{% raw %}{{ cookiecutter.lib_slug }}{% endraw %}.hpp"

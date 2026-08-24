@@ -3,11 +3,11 @@
 #include <benchmark/benchmark.h>
 
 static void BM_VectorAdd(benchmark::State &state) {
-  const auto lhs = math::Vector(1, 2);
-  const auto rhs = math::Vector(3, 4);
+  const math::Vector left(1, 2);
+  const math::Vector right(3, -1);
 
   for (auto _ : state) {
-    auto sum = lhs.add(rhs);
+    auto sum = left.add(right);
     benchmark::DoNotOptimize(sum);
   }
 }

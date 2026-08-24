@@ -29,7 +29,8 @@ The generated project includes:
 * `CMakePresets.json` with presets for `Debug`, `RelWithDebInfo`, Address/Undefined Sanitizers, and `clang-tidy`
 * Additional `tsan` and `coverage` presets
 * A reusable `libs/` layout for project libraries
-* Optional `examples/` and `benchmarks/` modules
+* Per-package `example/` and `benchmark/` discovery for optional example and benchmark binaries
+* Reusable `package()` and `workspace()` CMake helpers for component and workspace discovery
 * CPM package snippets organized under `packages/`, with only the default sample dependencies loaded up front
 * GoogleTest integration for unit tests
 * Optional `clang-tidy` and `cppcheck` support
@@ -38,7 +39,7 @@ The generated project includes:
 * A `coverage-report` target for coverage-enabled builds when `gcovr` is available
 * A Docker/Podman-based dependency validation helper for clean-room builds
 * GitHub Actions and GitLab CI templates
-* Additional Cookiecutter templates for generating libraries, executables, benchmarks, and other project components
+* Additional helpers for generating executables, examples, benchmarks, and other project components
 
 ## Template Inputs
 

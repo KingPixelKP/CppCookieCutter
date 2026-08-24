@@ -28,12 +28,13 @@ set(CMAKE_CXX_STANDARD {{ cookiecutter.cpp_standard }})
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 if(CMAKE_EXPORT_COMPILE_COMMANDS)
-    file(CREATE_LINK
-        "${CMAKE_BINARY_DIR}/compile_commands.json"
-        "${CMAKE_SOURCE_DIR}/compile_commands.json"
-        SYMBOLIC
-    )
+  file(CREATE_LINK
+    "${CMAKE_BINARY_DIR}/compile_commands.json"
+    "${CMAKE_SOURCE_DIR}/compile_commands.json"
+    SYMBOLIC
+  )
 endif()
 
 # includes
@@ -59,6 +60,8 @@ endif()
 
 # Tools
 include(tools)
+include(package)
+include(workspace)
 configure_project_tooling()
 
 # CPM package manager
@@ -131,62 +134,39 @@ if(${PROJECT_NAME_UPPER}_BUILD_BENCHMARKS)
   include(benchmark)
 endif()
 
-if(${PROJECT_NAME_UPPER}_BUILD_EXAMPLES)
-  add_subdirectory(examples)
-endif()
-
-if(${PROJECT_NAME_UPPER}_BUILD_BENCHMARKS)
-  add_subdirectory(benchmarks)
-endif()
-
 if(${PROJECT_NAME_UPPER}_BUILD_DOCS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/docs/CMakeLists.txt")
-    add_subdirectory(docs)
+  add_subdirectory(docs)
 endif()
 
-# Find modules
-set(EXCLUDED_MODULES
+# Find workspace members
+set(EXCLUDED_WORKSPACE_MEMBERS
   src
   include
   cmake
   packages
   test
-  benchmarks
-  examples
   docs
 )
 
-file(GLOB children RELATIVE "${CMAKE_SOURCE_DIR}" "*")
-
-foreach(child IN LISTS children)
-  if(NOT IS_DIRECTORY "${CMAKE_SOURCE_DIR}/${child}")
-    continue()
-  endif()
-
-  if(child IN_LIST EXCLUDED_MODULES)
-    continue()
-  endif()
-
-  if(child MATCHES "^\\.")
-    continue()
-  endif()
-
-  if(EXISTS "${CMAKE_SOURCE_DIR}/${child}/CMakeLists.txt")
-    add_subdirectory("${child}")
-  endif()
-endforeach()
+workspace(
+  DISCOVER
+  libs
+  EXCLUDE
+  ${EXCLUDED_WORKSPACE_MEMBERS}
+)
 
 {% if cookiecutter.project_type in ["app", "hybrid"] %}
+
 # Main Executable
-add_executable(${PROJECT_NAME} src/main.cpp)
-target_link_libraries(${PROJECT_NAME}
-  PRIVATE
-{% if cookiecutter.project_type == "hybrid" %}
+package(
+  NAME ${PROJECT_NAME}
+  BIN
+  BIN_DEPS
+  {% if cookiecutter.project_type == "hybrid" %}
   math
-{% endif %}
+  {% endif %}
   fmt::fmt
 )
-configure_target(${PROJECT_NAME})
-install_project_target(${PROJECT_NAME})
 {% endif %}
 
 if(${PROJECT_NAME_UPPER}_INSTALL)
@@ -213,8 +193,8 @@ if(${PROJECT_NAME_UPPER}_INSTALL)
 
   install(
     FILES
-      "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-      "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
     DESTINATION "${_package_config_install_dir}"
   )
 endif()
