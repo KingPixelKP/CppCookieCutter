@@ -561,12 +561,19 @@ function(package)
     if(_package_should_make_main)
         list(GET _package_main_sources 0 _package_main_source)
         set(_package_main_target "${PKG_NAME}_main")
+        set(_package_main_target_output_dir "${CMAKE_CURRENT_BINARY_DIR}/${_package_bin_dir}")
 
         if(NOT _package_library_target)
             set(_package_main_target "${PKG_NAME}")
         endif()
 
         add_executable("${_package_main_target}" "${_package_main_source}")
+        set_target_properties("${_package_main_target}"
+            PROPERTIES
+            ARCHIVE_OUTPUT_DIRECTORY "${_package_main_target_output_dir}"
+            LIBRARY_OUTPUT_DIRECTORY "${_package_main_target_output_dir}"
+            RUNTIME_OUTPUT_DIRECTORY "${_package_main_target_output_dir}"
+        )
 
         if(_package_library_target)
             target_link_libraries("${_package_main_target}"
@@ -605,6 +612,7 @@ function(package)
         foreach(source IN LISTS _package_binary_sources)
             get_filename_component(_package_binary_name "${source}" NAME_WE)
             set(_package_binary_target "${PKG_NAME}_bin_${_package_binary_name}")
+            set(_package_binary_target_output_dir "${CMAKE_CURRENT_BINARY_DIR}/${_package_bin_dir}")
 
             if(
                 NOT _package_library_target
@@ -615,6 +623,12 @@ function(package)
             endif()
 
             add_executable("${_package_binary_target}" "${source}")
+            set_target_properties("${_package_binary_target}"
+                PROPERTIES
+                ARCHIVE_OUTPUT_DIRECTORY "${_package_binary_target_output_dir}"
+                LIBRARY_OUTPUT_DIRECTORY "${_package_binary_target_output_dir}"
+                RUNTIME_OUTPUT_DIRECTORY "${_package_binary_target_output_dir}"
+            )
 
             if(_package_library_target)
                 target_link_libraries("${_package_binary_target}"
@@ -657,8 +671,15 @@ function(package)
             foreach(source IN LISTS _package_test_sources)
                 get_filename_component(_package_test_name "${source}" NAME_WE)
                 set(_package_test_target "${PKG_NAME}_test_${_package_test_name}")
+                set(_package_test_target_output_dir "${CMAKE_CURRENT_BINARY_DIR}/${_package_test_dir}")
 
                 add_executable("${_package_test_target}" "${source}")
+                set_target_properties("${_package_test_target}"
+                    PROPERTIES
+                    ARCHIVE_OUTPUT_DIRECTORY "${_package_test_target_output_dir}"
+                    LIBRARY_OUTPUT_DIRECTORY "${_package_test_target_output_dir}"
+                    RUNTIME_OUTPUT_DIRECTORY "${_package_test_target_output_dir}"
+                )
 
                 set(_package_test_link_libraries)
 
@@ -715,8 +736,15 @@ function(package)
             foreach(source IN LISTS _package_example_sources)
                 get_filename_component(_package_example_name "${source}" NAME_WE)
                 set(_package_example_target "${PKG_NAME}_example_${_package_example_name}")
+                set(_package_example_target_output_dir "${CMAKE_CURRENT_BINARY_DIR}/${_package_example_dir}")
 
                 add_executable("${_package_example_target}" "${source}")
+                set_target_properties("${_package_example_target}"
+                    PROPERTIES
+                    ARCHIVE_OUTPUT_DIRECTORY "${_package_example_target_output_dir}"
+                    LIBRARY_OUTPUT_DIRECTORY "${_package_example_target_output_dir}"
+                    RUNTIME_OUTPUT_DIRECTORY "${_package_example_target_output_dir}"
+                )
 
                 set(_package_example_link_libraries)
 
@@ -755,8 +783,15 @@ function(package)
             foreach(source IN LISTS _package_benchmark_sources)
                 get_filename_component(_package_benchmark_name "${source}" NAME_WE)
                 set(_package_benchmark_target "${PKG_NAME}_benchmark_${_package_benchmark_name}")
+                set(_package_benchmark_target_output_dir "${CMAKE_CURRENT_BINARY_DIR}/${_package_benchmark_dir}")
 
                 add_executable("${_package_benchmark_target}" "${source}")
+                set_target_properties("${_package_benchmark_target}"
+                    PROPERTIES
+                    ARCHIVE_OUTPUT_DIRECTORY "${_package_benchmark_target_output_dir}"
+                    LIBRARY_OUTPUT_DIRECTORY "${_package_benchmark_target_output_dir}"
+                    RUNTIME_OUTPUT_DIRECTORY "${_package_benchmark_target_output_dir}"
+                )
 
                 set(_package_benchmark_link_libraries benchmark::benchmark benchmark::benchmark_main)
 
