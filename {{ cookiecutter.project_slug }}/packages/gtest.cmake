@@ -1,3 +1,5 @@
+include(GoogleTest)
+
 CPMAddPackage(
     NAME googletest
     GITHUB_REPOSITORY google/googletest

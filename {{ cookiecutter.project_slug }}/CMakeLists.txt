@@ -171,6 +171,7 @@ package(
 
 if(${PROJECT_NAME_UPPER}_INSTALL)
   set(_package_config_install_dir "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
+  set(_project_install_component "${PROJECT_NAME}")
 
   configure_package_config_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/project-config.cmake.in"
@@ -189,6 +190,7 @@ if(${PROJECT_NAME_UPPER}_INSTALL)
     FILE "${PROJECT_NAME}Targets.cmake"
     NAMESPACE ${PROJECT_NAME}::
     DESTINATION "${_package_config_install_dir}"
+    COMPONENT "${_project_install_component}"
   )
 
   install(
@@ -196,6 +198,7 @@ if(${PROJECT_NAME_UPPER}_INSTALL)
     "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
     DESTINATION "${_package_config_install_dir}"
+    COMPONENT "${_project_install_component}"
   )
 endif()
 

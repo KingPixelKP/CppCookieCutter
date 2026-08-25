@@ -156,12 +156,14 @@ function(install_project_target TARGET_NAME)
         return()
     endif()
 
+    set(_install_component "${PROJECT_NAME}")
     get_target_property(_target_type ${TARGET_NAME} TYPE)
 
     if(_target_type STREQUAL "INTERFACE_LIBRARY")
         install(
             TARGETS ${TARGET_NAME}
             EXPORT ${PROJECT_NAME}Targets
+            COMPONENT ${_install_component}
             INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         )
         return()
@@ -170,6 +172,7 @@ function(install_project_target TARGET_NAME)
     install(
         TARGETS ${TARGET_NAME}
         EXPORT ${PROJECT_NAME}Targets
+        COMPONENT ${_install_component}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -189,6 +192,8 @@ function(install_project_headers INCLUDE_DIR)
         return()
     endif()
 
+    set(_install_component "${PROJECT_NAME}")
+
     if(NOT IS_DIRECTORY "${INCLUDE_DIR}")
         message(FATAL_ERROR "install_project_headers expected a directory, got \"${INCLUDE_DIR}\"")
     endif()
@@ -196,6 +201,7 @@ function(install_project_headers INCLUDE_DIR)
     install(
         DIRECTORY "${INCLUDE_DIR}/"
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        COMPONENT ${_install_component}
     )
 endfunction()
 
