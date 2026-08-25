@@ -572,6 +572,7 @@ function(package)
             PROPERTIES
             ARCHIVE_OUTPUT_DIRECTORY "${_package_main_target_output_dir}"
             LIBRARY_OUTPUT_DIRECTORY "${_package_main_target_output_dir}"
+            OUTPUT_NAME "${PKG_NAME}"
             RUNTIME_OUTPUT_DIRECTORY "${_package_main_target_output_dir}"
         )
 
@@ -627,6 +628,7 @@ function(package)
                 PROPERTIES
                 ARCHIVE_OUTPUT_DIRECTORY "${_package_binary_target_output_dir}"
                 LIBRARY_OUTPUT_DIRECTORY "${_package_binary_target_output_dir}"
+                OUTPUT_NAME "${_package_binary_name}"
                 RUNTIME_OUTPUT_DIRECTORY "${_package_binary_target_output_dir}"
             )
 
@@ -678,6 +680,7 @@ function(package)
                     PROPERTIES
                     ARCHIVE_OUTPUT_DIRECTORY "${_package_test_target_output_dir}"
                     LIBRARY_OUTPUT_DIRECTORY "${_package_test_target_output_dir}"
+                    OUTPUT_NAME "${_package_test_name}"
                     RUNTIME_OUTPUT_DIRECTORY "${_package_test_target_output_dir}"
                 )
 
@@ -743,6 +746,7 @@ function(package)
                     PROPERTIES
                     ARCHIVE_OUTPUT_DIRECTORY "${_package_example_target_output_dir}"
                     LIBRARY_OUTPUT_DIRECTORY "${_package_example_target_output_dir}"
+                    OUTPUT_NAME "${_package_example_name}"
                     RUNTIME_OUTPUT_DIRECTORY "${_package_example_target_output_dir}"
                 )
 
@@ -790,6 +794,7 @@ function(package)
                     PROPERTIES
                     ARCHIVE_OUTPUT_DIRECTORY "${_package_benchmark_target_output_dir}"
                     LIBRARY_OUTPUT_DIRECTORY "${_package_benchmark_target_output_dir}"
+                    OUTPUT_NAME "${_package_benchmark_name}"
                     RUNTIME_OUTPUT_DIRECTORY "${_package_benchmark_target_output_dir}"
                 )
 
