@@ -31,6 +31,23 @@ function(_package_collect_headers out_var base_dir)
     set("${out_var}" "${_package_headers}" PARENT_SCOPE)
 endfunction()
 
+function(_package_exclude_files out_var base_dir source_list)
+    set(_package_filtered_sources ${source_list})
+
+    foreach(_package_excluded IN LISTS ARGN)
+        if(IS_ABSOLUTE "${_package_excluded}")
+            set(_package_excluded_path "${_package_excluded}")
+        else()
+            set(_package_excluded_path "${base_dir}/${_package_excluded}")
+        endif()
+
+        cmake_path(NORMAL_PATH _package_excluded_path)
+        list(REMOVE_ITEM _package_filtered_sources "${_package_excluded_path}")
+    endforeach()
+
+    set("${out_var}" "${_package_filtered_sources}" PARENT_SCOPE)
+endfunction()
+
 function(_package_normalize_test_framework out_var framework)
     string(TOUPPER "${framework}" _package_test_framework)
 
@@ -49,6 +66,81 @@ function(_package_normalize_test_framework out_var framework)
     set("${out_var}" "${_package_test_framework}" PARENT_SCOPE)
 endfunction()
 
+#[[
+Configure a package rooted at the current source directory.
+
+Target selection:
+  AUTO
+    Re-enable auto-discovery even when explicit target mode flags are present.
+  LIB
+    Build a library target from files under `SRC_DIR`/`src` plus public headers
+    under `INCLUDE_DIR`/`include`.
+  BIN
+    Build executables from `src/main.*` and files under `BIN_DIR`/`bin`.
+  TESTS
+    Build test executables from files under `TEST_DIR`/`test`.
+  EXAMPLES
+    Build example executables from files under `EXAMPLE_DIR`/`example`.
+  BENCHMARKS
+    Build benchmark executables from files under `BENCHMARK_DIR`/`benchmark`.
+  NO_INSTALL
+    Skip install/export rules for targets created by this package.
+
+Names and directories:
+  NAME
+    Override the package name. Defaults to the current directory name.
+  LIB_TYPE
+    Library type passed to `add_library`, for example `STATIC`, `SHARED`, or
+    `INTERFACE`.
+  INCLUDE_DIR / OVERRIDE_INCLUDE
+    Directory containing public headers. Defaults to `include`.
+  SRC_DIR / OVERRIDE_SRC
+    Directory containing library sources and `main.*`. Defaults to `src`.
+  TEST_DIR / OVERRIDE_TEST
+    Directory containing test sources. Defaults to `test`.
+  EXAMPLE_DIR / OVERRIDE_EXAMPLE
+    Directory containing example sources. Defaults to `example`.
+  BENCHMARK_DIR / OVERRIDE_BENCHMARK
+    Directory containing benchmark sources. Defaults to `benchmark`.
+  BIN_DIR / OVERRIDE_BIN
+    Directory containing additional executable sources. Defaults to `bin`.
+
+Dependencies:
+  DEPS
+    Shared dependencies applied where a standalone target needs them.
+  PUBLIC_DEPS / PUB_DEPS
+    Public library dependencies exposed to consumers of the package library.
+  PRIVATE_DEPS / PRIV_DEPS
+    Private library dependencies used only when linking the package library.
+  BIN_DEPS
+    Extra dependencies for binaries created from `BIN` or `src/main.*`.
+  TEST_DEPS
+    Extra dependencies for test targets.
+  EXAMPLE_DEPS
+    Extra dependencies for example targets.
+  BENCHMARK_DEPS
+    Extra dependencies for benchmark targets.
+
+Testing:
+  TEST_FRAMEWORK / TEST_LIB
+    Select `GTEST`, `CTEST`, or `CATCH2` test integration. `TEST_LIB` is kept as
+    a compatibility alias for the same choice.
+
+Per-file exclusions:
+  EXCLUDE_SRCS
+    Skip specific files inside `SRC_DIR`/`src`, including `main.*` when needed.
+  EXCLUDE_BINS
+    Skip specific files inside `BIN_DIR`/`bin`.
+  EXCLUDE_TESTS
+    Skip specific files inside `TEST_DIR`/`test`.
+  EXCLUDE_EXAMPLES
+    Skip specific files inside `EXAMPLE_DIR`/`example`.
+  EXCLUDE_BENCHMARKS
+    Skip specific files inside `BENCHMARK_DIR`/`benchmark`.
+
+Relative exclusion paths are resolved from the matching category directory, for
+example `EXCLUDE_TESTS slow.cpp` skips `test/slow.cpp`.
+#]]
 function(package)
     set(options
         AUTO
@@ -87,6 +179,11 @@ function(package)
         TEST_DEPS
         EXAMPLE_DEPS
         BENCHMARK_DEPS
+        EXCLUDE_SRCS
+        EXCLUDE_BINS
+        EXCLUDE_TESTS
+        EXCLUDE_EXAMPLES
+        EXCLUDE_BENCHMARKS
     )
 
     cmake_parse_arguments(PARSE_ARGV 0 PKG
@@ -207,15 +304,54 @@ function(package)
     _package_collect_headers(_package_public_headers "${_package_include_path}")
     _package_collect_cpp_sources(_package_library_sources "${_package_source_path}")
     list(FILTER _package_library_sources EXCLUDE REGEX "/main\\.(cpp|cc|cxx)$")
+    _package_exclude_files(
+        _package_library_sources
+        "${_package_source_path}"
+        "${_package_library_sources}"
+        ${PKG_EXCLUDE_SRCS}
+    )
+
     _package_collect_cpp_sources(_package_binary_sources "${_package_bin_path}")
+    _package_exclude_files(
+        _package_binary_sources
+        "${_package_bin_path}"
+        "${_package_binary_sources}"
+        ${PKG_EXCLUDE_BINS}
+    )
     _package_collect_cpp_sources(_package_test_sources "${_package_test_path}")
+    _package_exclude_files(
+        _package_test_sources
+        "${_package_test_path}"
+        "${_package_test_sources}"
+        ${PKG_EXCLUDE_TESTS}
+    )
+
     _package_collect_cpp_sources(_package_example_sources "${_package_example_path}")
+    _package_exclude_files(
+        _package_example_sources
+        "${_package_example_path}"
+        "${_package_example_sources}"
+        ${PKG_EXCLUDE_EXAMPLES}
+    )
+
     _package_collect_cpp_sources(_package_benchmark_sources "${_package_benchmark_path}")
+    _package_exclude_files(
+        _package_benchmark_sources
+        "${_package_benchmark_path}"
+        "${_package_benchmark_sources}"
+        ${PKG_EXCLUDE_BENCHMARKS}
+    )
 
     file(GLOB _package_main_sources CONFIGURE_DEPENDS
         "${_package_source_path}/main.cpp"
         "${_package_source_path}/main.cc"
         "${_package_source_path}/main.cxx"
+    )
+    _package_exclude_files(
+        _package_main_sources
+        "${_package_source_path}"
+        "${_package_main_sources}"
+        ${PKG_EXCLUDE_SRCS}
     )
     list(LENGTH _package_main_sources _package_main_sources_count)
 
@@ -406,6 +542,7 @@ function(package)
             endif()
         endif()
 
+        add_library("${PROJECT_NAME}::${PKG_NAME}" ALIAS "${PKG_NAME}")
         add_library("${PKG_NAME}::${PKG_NAME}" ALIAS "${PKG_NAME}")
         add_library("${PKG_NAME}::lib" ALIAS "${PKG_NAME}")
         configure_target("${PKG_NAME}")
