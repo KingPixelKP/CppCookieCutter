@@ -66,6 +66,16 @@ function(_package_normalize_test_framework out_var framework)
     set("${out_var}" "${_package_test_framework}" PARENT_SCOPE)
 endfunction()
 
+function(_package_copy_data_dir_if_exists target source_dir output_dir)
+    if(EXISTS "${source_dir}")
+        add_custom_command(TARGET "${target}" POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${output_dir}/data"
+            COMMAND ${CMAKE_COMMAND} -E copy_directory "${source_dir}" "${output_dir}/data"
+            VERBATIM
+        )
+    endif()
+endfunction()
+
 #[[
 Configure a package rooted at the current source directory.
 
@@ -104,6 +114,20 @@ Names and directories:
     Directory containing benchmark sources. Defaults to `benchmark`.
   BIN_DIR / OVERRIDE_BIN
     Directory containing additional executable sources. Defaults to `bin`.
+
+Inferred runtime data directories:
+  `BIN_DIR`/data
+    Copied to the built `bin` output directory for `src/main.*` and `BIN_DIR`
+    executables when present.
+  `TEST_DIR`/data
+    Copied to the built `test` output directory for test executables when
+    present.
+  `EXAMPLE_DIR`/data
+    Copied to the built `example` output directory for example executables when
+    present.
+  `BENCHMARK_DIR`/data
+    Copied to the built `benchmark` output directory for benchmark executables
+    when present.
 
 Dependencies:
   DEPS
@@ -575,6 +599,11 @@ function(package)
             OUTPUT_NAME "${PKG_NAME}"
             RUNTIME_OUTPUT_DIRECTORY "${_package_main_target_output_dir}"
         )
+        _package_copy_data_dir_if_exists(
+            "${_package_main_target}"
+            "${_package_bin_path}/data"
+            "${_package_main_target_output_dir}"
+        )
 
         if(_package_library_target)
             target_link_libraries("${_package_main_target}"
@@ -631,6 +660,11 @@ function(package)
                 OUTPUT_NAME "${_package_binary_name}"
                 RUNTIME_OUTPUT_DIRECTORY "${_package_binary_target_output_dir}"
             )
+            _package_copy_data_dir_if_exists(
+                "${_package_binary_target}"
+                "${_package_bin_path}/data"
+                "${_package_binary_target_output_dir}"
+            )
 
             if(_package_library_target)
                 target_link_libraries("${_package_binary_target}"
@@ -682,6 +716,11 @@ function(package)
                     LIBRARY_OUTPUT_DIRECTORY "${_package_test_target_output_dir}"
                     OUTPUT_NAME "${_package_test_name}"
                     RUNTIME_OUTPUT_DIRECTORY "${_package_test_target_output_dir}"
+                )
+                _package_copy_data_dir_if_exists(
+                    "${_package_test_target}"
+                    "${_package_test_path}/data"
+                    "${_package_test_target_output_dir}"
                 )
 
                 set(_package_test_link_libraries)
@@ -749,6 +788,11 @@ function(package)
                     OUTPUT_NAME "${_package_example_name}"
                     RUNTIME_OUTPUT_DIRECTORY "${_package_example_target_output_dir}"
                 )
+                _package_copy_data_dir_if_exists(
+                    "${_package_example_target}"
+                    "${_package_example_path}/data"
+                    "${_package_example_target_output_dir}"
+                )
 
                 set(_package_example_link_libraries)
 
@@ -796,6 +840,11 @@ function(package)
                     LIBRARY_OUTPUT_DIRECTORY "${_package_benchmark_target_output_dir}"
                     OUTPUT_NAME "${_package_benchmark_name}"
                     RUNTIME_OUTPUT_DIRECTORY "${_package_benchmark_target_output_dir}"
+                )
+                _package_copy_data_dir_if_exists(
+                    "${_package_benchmark_target}"
+                    "${_package_benchmark_path}/data"
+                    "${_package_benchmark_target_output_dir}"
                 )
 
                 set(_package_benchmark_link_libraries benchmark::benchmark benchmark::benchmark_main)

@@ -49,6 +49,10 @@ To add a new library package, create a new folder under [`libs/`](./libs/) with 
 [`CMakeLists.txt`](./libs/math/CMakeLists.txt) that calls `package(...)`, then add `src/`,
 `include/`, `test/`, `example/`, or `benchmark/` directories as needed.
 
+If a package needs runtime assets, add a sibling `data/` directory under `bin/`, `test/`,
+`example/`, or `benchmark/`. The `package()` helper copies those directories into the matching
+build output folder so the executables can load assets with stable relative paths.
+
 Build:
 
 ```bash

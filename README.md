@@ -30,6 +30,7 @@ The generated project includes:
 * Additional `tsan` and `coverage` presets
 * A reusable `libs/` layout for project libraries
 * Per-package `example/` and `benchmark/` discovery for optional example and benchmark binaries
+* Inferred per-target `data/` directories copied into matching build output folders for runtime assets
 * Reusable `package()` and `workspace()` CMake helpers for component and workspace discovery
 * CPM package snippets organized under `packages/`, with only the default sample dependencies loaded up front
 * GoogleTest integration for unit tests
