@@ -1,11 +1,18 @@
 #include "math/math.hpp"
+#include <expected>
 
 namespace math {
 
-Vector Vector::add(const Vector &other) const {
+auto Vector::add(const Vector& other) const -> Vector {
   return {.x_ = x_ + other.x_, .y_ = y_ + other.y_};
 }
-Vector Vector::sub(const Vector &other) const {
+auto Vector::sub(const Vector& other) const -> Vector  {
   return {.x_ = x_ - other.x_, .y_ = y_ - other.y_};
 }
-} // namespace math
+auto Vector::div(const Vector& other) const -> std::expected<Vector, std::string>  {
+  if (other.x_ == 0 || other.y_ == 0) {
+    return std::unexpected("Bad Math!!!!");
+  }
+  return Vector{.x_ = x_ / other.x_, .y_ = y_ - other.y_};
+}
+}  // namespace math
