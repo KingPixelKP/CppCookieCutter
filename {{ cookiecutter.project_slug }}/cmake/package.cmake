@@ -567,6 +567,7 @@ function(package)
         endif()
 
         add_library("${PROJECT_NAME}::${PKG_NAME}" ALIAS "${PKG_NAME}")
+        add_library("${PROJECT_NAME}::${PKG_NAME}::lib" ALIAS "${PKG_NAME}")
         add_library("${PKG_NAME}::${PKG_NAME}" ALIAS "${PKG_NAME}")
         add_library("${PKG_NAME}::lib" ALIAS "${PKG_NAME}")
         configure_target("${PKG_NAME}")

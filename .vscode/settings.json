@@ -1,0 +1,3 @@
+{
+    "cmake.sourceDirectory": "/home/kpgm/code/cpptemplate/{{ cookiecutter.project_slug }}"
+}
