@@ -58,14 +58,13 @@ else()
   message(WARNING "ccache not found; compiler launcher will not be configured")
 endif()
 
-# Tools
-include(tools)
-include(package)
-include(workspace)
-configure_project_tooling()
-
 # CPM package manager
 include(CPM)
+include(cookie_cmake)
+
+# Tools
+configure_project_tooling()
+
 
 set(${PROJECT_NAME_UPPER}_PACKAGE_LOCK_FILE
   "${CMAKE_CURRENT_SOURCE_DIR}/packages/package-lock.cmake"
