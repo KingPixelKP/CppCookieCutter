@@ -225,4 +225,8 @@ This project was generated from the **CppCookieCutter**.
 
 The template repository contains updates, additional generators, and documentation:
 
-* https://github.com/KingPixelKP/CppCookieCutter.git
+* <https://github.com/KingPixelKP/CppCookieCutter.git>
+
+The CMake function directory used to provide versioned CMake helpers is:
+
+* <https://github.com/KingPixelKP/Cookie-Cmake.git>

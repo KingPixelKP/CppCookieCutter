@@ -16,7 +16,7 @@ or
 cookiecutter /path/to/this/template
 ```
 
-or 
+or
 
 ```bash
 uvx cookiecutter gh:KingPixelKP/CppCookieCutter
