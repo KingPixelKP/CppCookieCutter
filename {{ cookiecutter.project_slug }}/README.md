@@ -61,15 +61,31 @@ nix flake update       # move every pinned input (nixpkgs, Cookie-Cmake) forward
 
 ## Development
 
-Enter the dev shell, which provides the build dependencies plus `clang-tools`, `gdb`, `gcovr` and
-Google Benchmark, and exports `COOKIE_CMAKE_DIR` for CMake:
+The [`Makefile`](./Makefile) wraps the presets and flake outputs, and works from any shell. Outside
+the dev shell, each command runs through `nix develop` for you:
 
 ```bash
-nix develop
+make            # list targets
+make build      # configure (first time) and build the debug preset
+make test       # build and run the tests
+{%- if cookiecutter.project_type in ["app", "hybrid"] %}
+make run        # build and run the main executable
+{%- endif %}
+make test PRESET=asan
+make format     # nix fmt
+make check      # nix flake check, same as CI
+make static     # fully static release build into ./result
+```
+
+To run CMake directly, enter the dev shell. It provides the build dependencies plus `clang-tools`,
+`gdb`, `gcovr` and Google Benchmark, and exports `COOKIE_CMAKE_DIR` for CMake:
+
+```bash
+make shell      # or: nix develop --command $SHELL
 cmake --preset debug
 ```
 
-Configuring outside `nix develop` fails because CMake cannot find Cookie-Cmake or the libraries.
+Running `cmake` outside the dev shell fails because CMake cannot find Cookie-Cmake or the libraries.
 Launch your editor from the dev shell so CMake Tools and clangd see the same environment.
 
 ### direnv
@@ -90,7 +106,7 @@ VSCode prompts to install the recommended extensions from
 [`.vscode/extensions.json`](./.vscode/extensions.json). The direnv extension loads the same
 environment into the editor, so clangd and CMake Tools work without launching from a shell.
 
-On first entry it also runs `cmake --preset debug`, so `compile_commands.json` is linked into the
+On first entry it also runs `make configure` (the debug preset), so `compile_commands.json` is linked into the
 project root for clangd. Editors with a direnv extension pick up the same environment.
 
 The default project uses [`fmt`](https://github.com/fmtlib/fmt), plus GoogleTest and Google Benchmark
