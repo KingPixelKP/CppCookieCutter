@@ -12,6 +12,17 @@ Generated projects build only through [Nix](https://nixos.org/download/) with fl
 
 ## Generating a Project
 
+With only Nix installed:
+
+```bash
+nix run github:KingPixelKP/CppCookieCutter
+```
+
+Arguments after `--` go to cookiecutter, for example
+`nix run github:KingPixelKP/CppCookieCutter -- --no-input project_name=demo`.
+
+With cookiecutter installed:
+
 ```bash
 cookiecutter .
 ```
