@@ -11,5 +11,5 @@ int main() {
   fmt::println("Vector: x:{}, y:{}", vec.x_, vec.y_);
 {% else %}
   fmt::println("Hello from {{ cookiecutter.project_name }} v{{ cookiecutter.project_version }}");
-{% endif %}
+{% endif -%}
 }

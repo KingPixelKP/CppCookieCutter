@@ -52,9 +52,12 @@ pinned by hash in `flake.lock`.
 ```bash
 nix build              # shared build, runs ctest in the sandbox; output in ./result
 nix build .#static     # fully static (musl) build for release
-nix flake check        # builds and tests both packages
+nix flake check        # builds and tests the packages, checks C/C++ formatting
+nix fmt                # format tracked Nix and C/C++ files in place
 nix flake update       # move every pinned input (nixpkgs, Cookie-Cmake) forward
 ```
+
+`.#static` exists only on Linux, because `pkgsStatic` (musl) does not support macOS.
 
 ## Development
 
@@ -77,6 +80,15 @@ for caching), the included `.envrc` loads the dev shell whenever you `cd` into t
 ```bash
 direnv allow
 ```
+
+direnv only runs if its hook is in your shell config. See
+[hook setup](https://direnv.net/docs/hook.html): for example, `direnv hook fish | source` in
+`~/.config/fish/config.fish`, or `eval "$(direnv hook zsh)"` in `~/.zshrc`. Without the hook,
+`cd` loads nothing and CMake uses the system compiler.
+
+VSCode prompts to install the recommended extensions from
+[`.vscode/extensions.json`](./.vscode/extensions.json). The direnv extension loads the same
+environment into the editor, so clangd and CMake Tools work without launching from a shell.
 
 On first entry it also runs `cmake --preset debug`, so `compile_commands.json` is linked into the
 project root for clangd. Editors with a direnv extension pick up the same environment.

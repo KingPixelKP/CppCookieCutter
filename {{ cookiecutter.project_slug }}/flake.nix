@@ -11,18 +11,76 @@
     };
   };
 
-  outputs = { self, nixpkgs, cookie-cmake }:
+  outputs =
+    {
+      self,
+      nixpkgs,
+      cookie-cmake,
+    }:
     let
-      systems = [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
-      forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f nixpkgs.legacyPackages.${system});
-    in {
-      packages = forAllSystems (pkgs: {
-        default = pkgs.callPackage ./package.nix { inherit cookie-cmake; };            # shared, for devs
-        static  = pkgs.pkgsStatic.callPackage ./package.nix { inherit cookie-cmake; }; # fully static (musl), for release
-      });
+      lib = nixpkgs.lib;
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "aarch64-darwin"
+      ];
+      forAllSystems = f: lib.genAttrs systems (system: f nixpkgs.legacyPackages.${system});
 
-      # `nix flake check` builds (and tests) every package.
-      checks = forAllSystems (pkgs: self.packages.${pkgs.stdenv.hostPlatform.system});
+      # C/C++ sources checked by `nix flake check` and rewritten by `nix fmt`.
+      cxxGlob = [
+        "*.c"
+        "*.cc"
+        "*.cpp"
+        "*.cxx"
+        "*.h"
+        "*.hh"
+        "*.hpp"
+        "*.hxx"
+        "*.ipp"
+      ];
+    in
+    {
+      packages = forAllSystems (
+        pkgs:
+        {
+          default = pkgs.callPackage ./package.nix { inherit cookie-cmake; }; # shared, for devs
+        }
+        // lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
+          # fully static (musl), for release; pkgsStatic only works on Linux
+          static = pkgs.pkgsStatic.callPackage ./package.nix { inherit cookie-cmake; };
+        }
+      );
+
+      # `nix fmt`: format tracked Nix and C/C++ files in place.
+      formatter = forAllSystems (
+        pkgs:
+        pkgs.writeShellApplication {
+          name = "format";
+          runtimeInputs = [
+            pkgs.git
+            pkgs.nixfmt
+            pkgs.clang-tools
+          ];
+          text = ''
+            git ls-files -z -- '*.nix' | xargs -0 -r nixfmt
+            git ls-files -z -- ${lib.escapeShellArgs cxxGlob} | xargs -0 -r clang-format -i
+          '';
+        }
+      );
+
+      # `nix flake check`: build and test every package, and check C/C++ formatting.
+      checks = forAllSystems (
+        pkgs:
+        self.packages.${pkgs.stdenv.hostPlatform.system}
+        // {
+          format = pkgs.runCommand "check-format" { nativeBuildInputs = [ pkgs.clang-tools ]; } ''
+            cd ${self}
+            find . \( ${lib.concatMapStringsSep " -o " (g: "-name '${g}'") cxxGlob} \) -print0 \
+              | xargs -0 -r clang-format --dry-run -Werror
+            touch $out
+          '';
+        }
+      );
 
       devShells = forAllSystems (pkgs: {
         default = pkgs.mkShell {

@@ -65,6 +65,12 @@ endif()
 # source; `nix develop` exports COOKIE_CMAKE_DIR and `nix build` passes it.
 set(COOKIE_CMAKE_DIR "$ENV{COOKIE_CMAKE_DIR}" CACHE PATH "Cookie-Cmake checkout (provided by nix develop / nix build)")
 
+# The dev shell's value wins over the cache, so a configure run outside the
+# shell (empty value) or before `nix flake update` (old store path) can't stick.
+if(DEFINED ENV{COOKIE_CMAKE_DIR} AND NOT "$ENV{COOKIE_CMAKE_DIR}" STREQUAL "${COOKIE_CMAKE_DIR}")
+  set(COOKIE_CMAKE_DIR "$ENV{COOKIE_CMAKE_DIR}" CACHE PATH "Cookie-Cmake checkout (provided by nix develop / nix build)" FORCE)
+endif()
+
 if(NOT EXISTS "${COOKIE_CMAKE_DIR}/cmake/cookie.cmake")
   message(FATAL_ERROR
     "Cookie-Cmake not found (COOKIE_CMAKE_DIR='${COOKIE_CMAKE_DIR}'). "
@@ -102,12 +108,17 @@ set(EXCLUDED_WORKSPACE_MEMBERS
   docs
 )
 
-workspace(
-  DISCOVER
-  libs
-  EXCLUDE
-  ${EXCLUDED_WORKSPACE_MEMBERS}
-)
+# workspace() fails when it finds no members, so skip it until libs/ has one.
+file(GLOB _workspace_lib_lists CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/libs/*/CMakeLists.txt")
+
+if(_workspace_lib_lists)
+  workspace(
+    DISCOVER
+    libs
+    EXCLUDE
+    ${EXCLUDED_WORKSPACE_MEMBERS}
+  )
+endif()
 
 {% if cookiecutter.project_type in ["app", "hybrid"] %}
 

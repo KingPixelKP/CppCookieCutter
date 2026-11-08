@@ -1,5 +1,6 @@
 from pathlib import Path
 import shutil
+import stat
 import subprocess
 from datetime import datetime
 
@@ -59,7 +60,13 @@ def try_run(*args: str) -> bool:
     return True
 
 
-replace_path("__LIB_SLUG__", "{{ '{{ cookiecutter.lib_slug }}' }}")
+# Cookiecutter copies file modes, so a template read from the Nix store
+# (`nix run github:KingPixelKP/CppCookieCutter`) yields read-only files.
+for path in [template_root, *template_root.rglob("*")]:
+    if not path.is_symlink():
+        path.chmod(path.stat().st_mode | stat.S_IWUSR)
+
+replace_path("__LIB_SLUG__","{{ '{{ cookiecutter.lib_slug }}' }}")
 replace_path("__EXEC_SLUG__", "{{ '{{ cookiecutter.exec_slug }}' }}")
 replace_path("__BENCHMARK_SLUG__", "{{ '{{ cookiecutter.bench_slug }}' }}")
 replace_path("__MODULE_SLUG__", "{{ '{{ cookiecutter.module_slug }}' }}")
@@ -85,6 +92,8 @@ project_type = "{{ cookiecutter.project_type }}"
 
 if project_type == "app":
     remove_path(template_root / "libs" / "math")
+    # Keep libs/ in git so it is obvious where new libraries go.
+    (template_root / "libs" / ".gitkeep").touch()
 elif project_type == "library":
     remove_path(template_root / "src")
 
