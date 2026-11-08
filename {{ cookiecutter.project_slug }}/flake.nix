@@ -37,6 +37,10 @@
 {%- if cookiecutter.include_docs == "y" %}
             pkgs.doxygen
 {%- endif %}
+            # Cookie-Cmake links with lld when it finds one; provide Nix's
+            # wrapped lld so a host /usr/bin/ld.lld isn't used, which would
+            # skip the store-path RPATHs (gtest, fmt, libstdc++).
+            pkgs.llvmPackages.bintools
           ];
 
           COOKIE_CMAKE_DIR = "${cookie-cmake}";
