@@ -77,8 +77,6 @@ if "{{ cookiecutter.license }}" == "None":
 if "{{ cookiecutter.include_ci }}" != "y":
     remove_path(template_root / ".github")
     remove_path(template_root / ".gitlab-ci.yml")
-    remove_path(template_root / "docker")
-    remove_path(template_root / "scripts" / "check-dependencies.sh")
 
 if "{{ cookiecutter.include_docs }}" != "y":
     remove_path(template_root / "docs")
@@ -92,6 +90,10 @@ elif project_type == "library":
 
 if "{{ cookiecutter.initialize_git }}" == "y":
     if try_run("git", "init"):
-        if "{{ cookiecutter.create_initial_commit }}" == "y":
-            if try_run("git", "add", "."):
+        # Flakes only see git-tracked files, so stage everything before locking.
+        if try_run("git", "add", "."):
+            if try_run("nix", "flake", "lock"):
+                try_run("git", "add", "flake.lock")
+
+            if "{{ cookiecutter.create_initial_commit }}" == "y":
                 try_run("git", "commit", "-m", "Initial commit")

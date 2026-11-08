@@ -1,106 +1,36 @@
 stages:
-  - image
-  - configure
-  - build
   - test
 
-variables:
-  CI_JOB_IMAGE: "${CI_REGISTRY_IMAGE}/ci:latest"
-  CPM_SOURCE_CACHE: "${CI_PROJECT_DIR}/.cache/CPM"
-  GIT_SUBMODULE_STRATEGY: recursive
-
 default:
-  image: "${CI_JOB_IMAGE}"
-  cache:
-    key: "${CI_PROJECT_NAME}-cpm"
-    paths:
-      - .cache/CPM
+  image: nixos/nix:2.28.3
 
-build:ci-image:
-  stage: image
-  image: docker:27
-  services:
-    - docker:27-dind
-  variables:
-    DOCKER_TLS_CERTDIR: "/certs"
-  before_script:
-    - echo "${CI_REGISTRY_PASSWORD}" | docker login "${CI_REGISTRY}" --username "${CI_REGISTRY_USER}" --password-stdin
-  script:
-    - docker build --file docker/ci.Dockerfile --tag "${CI_REGISTRY_IMAGE}/ci:${CI_COMMIT_SHA}" --tag "${CI_JOB_IMAGE}" .
-    - docker run --rm "${CI_REGISTRY_IMAGE}/ci:${CI_COMMIT_SHA}" cmake --version
-    - docker push "${CI_REGISTRY_IMAGE}/ci:${CI_COMMIT_SHA}"
-    - docker push "${CI_JOB_IMAGE}"
-  rules:
-    - changes:
-        - docker/ci.Dockerfile
-        - .gitlab-ci.yml
-        - scripts/install-deps.sh
-        - scripts/check-dependencies.sh
-    - if: '$CI_PIPELINE_SOURCE == "web"'
-      when: manual
-    - when: never
+variables:
+  NIX_CONFIG: "experimental-features = nix-command flakes"
 
-.configure_template:
-  stage: configure
-  script:
-    - cmake --preset "${PRESET}"
-  artifacts:
-    expire_in: 1 day
-    paths:
-      - ".build/${PRESET}"
-
-.build_template:
-  stage: build
-  script:
-    - cmake --build --preset "${PRESET}"
-  artifacts:
-    expire_in: 1 day
-    paths:
-      - ".build/${PRESET}"
-
-.test_template:
+# Configure, build and test in one job: the CMake cache holds /nix/store paths,
+# so build directories are not passed between jobs.
+.preset_template:
   stage: test
   script:
-    - ctest --preset "${PRESET}"
+    - |
+      nix develop --command bash -euo pipefail -c '
+        cmake --preset "${PRESET}"
+        cmake --build --preset "${PRESET}"
+        ctest --preset "${PRESET}"
+      '
 
-configure:debug:
-  extends: .configure_template
+preset:debug:
+  extends: .preset_template
   variables:
     PRESET: debug
 
-configure:release:
-  extends: .configure_template
+preset:release:
+  extends: .preset_template
   variables:
     PRESET: release
 
-build:debug:
-  extends: .build_template
-  needs:
-    - job: configure:debug
-      artifacts: true
-  variables:
-    PRESET: debug
-
-build:release:
-  extends: .build_template
-  needs:
-    - job: configure:release
-      artifacts: true
-  variables:
-    PRESET: release
-
-test:debug:
-  extends: .test_template
-  needs:
-    - job: build:debug
-      artifacts: true
-  variables:
-    PRESET: debug
-
-test:release:
-  extends: .test_template
-  needs:
-    - job: build:release
-      artifacts: true
-  variables:
-    PRESET: release
+# Sandboxed build + ctest of the default and static packages.
+nix:flake-check:
+  stage: test
+  script:
+    - nix flake check -L

@@ -14,8 +14,8 @@ This project was generated in `{{ cookiecutter.project_type }}` mode.
 * Reusable `libs/` layout for project libraries
 * Per-package `example/` and `benchmark/` discovery for optional example and benchmark binaries
 * Reusable `package()` and `workspace()` CMake helpers for component and workspace discovery
-* CPM-based dependency management with package snippets organized under [`packages/`](./packages/)
-* Optional CPM package locking via [`packages/package-lock.cmake`](./packages/package-lock.cmake)
+* Nix flake that pins the toolchain, every library and the CMake helpers in `flake.lock`
+* Sandboxed `nix build` (shared) and `nix build .#static` (fully static, musl) packages
 * GoogleTest integration for unit testing
 * Optional `clang-tidy` and `cppcheck` support
 * `format` build target when `clang-format` is available
@@ -24,26 +24,95 @@ This project was generated in `{{ cookiecutter.project_type }}` mode.
 * Optional Doxygen documentation support
 {% endif %}
 {% if cookiecutter.include_ci == "y" %}
-* A Docker/Podman-based dependency validation helper for clean-room builds
-* GitHub Actions and GitLab CI templates
+* Nix-based GitHub Actions and GitLab CI templates
 {% endif %}
 
-## Building
+## Requirements
 
-Configure the project:
+Only the [Nix](https://nixos.org/download/) package manager, on any Linux distribution, macOS, or
+WSL2 (NixOS is not required). Flakes must be enabled:
+
+```text
+# ~/.config/nix/nix.conf
+experimental-features = nix-command flakes
+```
+
+The [Determinate Nix installer](https://determinate.systems/nix-installer/) enables flakes by default.
+
+Everything else (compiler, CMake, Ninja, libraries and the
+[Cookie-Cmake](https://github.com/KingPixelKP/Cookie-Cmake) helpers) comes from the flake and is
+pinned by hash in `flake.lock`.
+
+> [!IMPORTANT]
+> Flakes only see files tracked by git. `git add` new files before running `nix build` or
+> `nix develop`, or Nix will not find them.
+
+## Nix Builds
 
 ```bash
-scripts/install-deps.sh
+nix build              # shared build, runs ctest in the sandbox; output in ./result
+nix build .#static     # fully static (musl) build for release
+nix flake check        # builds and tests both packages
+nix flake update       # move every pinned input (nixpkgs, Cookie-Cmake) forward
+```
+
+## Development
+
+Enter the dev shell, which provides the build dependencies plus `clang-tools`, `gdb`, `gcovr` and
+Google Benchmark, and exports `COOKIE_CMAKE_DIR` for CMake:
+
+```bash
+nix develop
 cmake --preset debug
 ```
 
-[`scripts/install-deps.sh`](./scripts/install-deps.sh) currently automates the Linux package setup for
-Debian/Ubuntu and Arch-based systems.
+Configuring outside `nix develop` fails because CMake cannot find Cookie-Cmake or the libraries.
+Launch your editor from the dev shell so CMake Tools and clangd see the same environment.
 
-The default project only pulls in [`fmt`](./packages/fmt.cmake) plus testing and benchmark dependencies
-when those targets are enabled. Examples and benchmarks are discovered from each package's
-`example/` and `benchmark/` directories, and additional CPM package snippets live under
-[`packages/`](./packages/) for inclusion from [`CMakeLists.txt`](./CMakeLists.txt) as your project grows.
+### direnv
+
+With [direnv](https://direnv.net/) (ideally with [nix-direnv](https://github.com/nix-community/nix-direnv)
+for caching), the included `.envrc` loads the dev shell whenever you `cd` into the project:
+
+```bash
+direnv allow
+```
+
+On first entry it also runs `cmake --preset debug`, so `compile_commands.json` is linked into the
+project root for clangd. Editors with a direnv extension pick up the same environment.
+
+The default project uses [`fmt`](https://github.com/fmtlib/fmt), plus GoogleTest and Google Benchmark
+when tests and benchmarks are enabled. Examples and benchmarks are discovered from each package's
+`example/` and `benchmark/` directories.
+
+## Adding Libraries
+
+Libraries come from [nixpkgs](https://search.nixos.org/packages). To add one:
+
+1. Add the nixpkgs attribute to the function arguments and `buildInputs` in [`package.nix`](./package.nix).
+2. Add the matching `find_package(<Name> CONFIG REQUIRED)` to [`CMakeLists.txt`](./CMakeLists.txt).
+3. Link the target, for example with `BIN_DEPS` / `LIB_DEPS` in `package(...)`.
+
+Common libraries:
+
+| nixpkgs attribute | `find_package` name | Target |
+| --- | --- | --- |
+| `fmt` | `fmt` | `fmt::fmt` |
+| `gtest` | `GTest` | `GTest::gtest_main` |
+| `gbenchmark` | `benchmark` | `benchmark::benchmark` |
+| `spdlog` | `spdlog` | `spdlog::spdlog` |
+| `abseil-cpp` | `absl` | `absl::<component>` |
+| `cli11` | `CLI11` | `CLI11::CLI11` |
+| `entt` | `EnTT` | `EnTT::EnTT` |
+| `nlohmann_json` | `nlohmann_json` | `nlohmann_json::nlohmann_json` |
+| `pugixml` | `pugixml` | `pugixml::pugixml` |
+| `raylib` | `raylib` | `raylib` |
+| `yaml-cpp` | `yaml-cpp` | `yaml-cpp::yaml-cpp` |
+
+Library versions follow the nixpkgs revision in `flake.lock`. To pin a specific version, override
+the package in [`flake.nix`](./flake.nix) with `overrideAttrs` and a `fetchFromGitHub` source.
+
+## Project Layout
 
 To add a new library package, create a new folder under [`libs/`](./libs/) with a minimal
 [`CMakeLists.txt`](./libs/math/CMakeLists.txt) that calls `package(...)`, then add `src/`,
@@ -82,21 +151,6 @@ cmake --build --preset coverage --target coverage-report
 When `gcovr` is available, the `coverage-report` target writes HTML and XML
 reports under `.build/coverage/coverage/`.
 
-## CPM Package Lock
-
-Generate or refresh the checked-in CPM lockfile:
-
-```bash
-cmake --build --preset debug --target package-lock
-```
-
-This writes [`packages/package-lock.cmake`](./packages/package-lock.cmake). To make the root build consume that
-lockfile during configure, enable:
-
-```bash
-cmake --preset debug -D{{ cookiecutter.upper_project_slug }}_USE_PACKAGE_LOCK=ON
-```
-
 {% if cookiecutter.include_docs == "y" %}
 ## Documentation
 
@@ -128,54 +182,6 @@ target_link_libraries(my_target PRIVATE {{ cookiecutter.project_slug }}::math)
 {% endif %}
 {% endif %}
 
-{% if cookiecutter.include_ci == "y" %}
-## Dependency Validation
-
-To verify that your dependency declarations are enough for a fresh Linux
-environment, run the project inside the bundled CI container:
-
-```bash
-scripts/check-dependencies.sh
-```
-
-This builds a local image from [`docker/ci.Dockerfile`](./docker/ci.Dockerfile), copies the project into
-a clean Ubuntu-based container, and runs:
-
-```bash
-cmake --preset debug
-cmake --build --preset debug
-ctest --preset debug
-```
-
-Useful variations:
-
-```bash
-scripts/check-dependencies.sh --preset release
-scripts/check-dependencies.sh --skip-tests
-scripts/check-dependencies.sh --container-tool podman
-```
-
-This is especially helpful after adding or updating files under [`packages/`](./packages/), or
-when you want to confirm the project does not rely on undeclared host packages.
-It complements CI, but only validates the Linux container toolchain defined in
-[`docker/ci.Dockerfile`](./docker/ci.Dockerfile).
-
-The system-package source of truth is [`scripts/install-deps.sh`](./scripts/install-deps.sh). The CI image
-build runs that script during `docker build`, so if you add a new
-`find_package(...)` dependency that requires a preinstalled system package, you
-should update [`scripts/install-deps.sh`](./scripts/install-deps.sh). That change will automatically trigger
-the CI image refresh in both GitHub Actions and GitLab.
-
-The generated GitHub Actions workflows also reuse this same image. A dedicated
-`Publish CI Image` workflow refreshes the GHCR image when the Dockerfile or CI
-image wiring changes, and the main Linux CI jobs pull that image instead of
-rebuilding it on every run.
-
-The generated GitLab pipeline follows the same pattern with the GitLab
-Container Registry. Its `build:ci-image` job only rebuilds the shared CI image
-when [`docker/ci.Dockerfile`](./docker/ci.Dockerfile) or related CI-image files change, and the regular
-pipeline stages reuse that published image.
-{% endif %}
 
 ## Sanitizers
 
@@ -198,12 +204,12 @@ cmake --build --preset clang-tidy
 
 ## Renaming the Project
 
-If you change the project name in the `project(...)` declaration, update any project-specific cache variables in [`CMakePresets.json`](./CMakePresets.json) (for example, `CPPTEMPLATE_SANITIZERS` and `CPPTEMPLATE_ENABLE_CLANG_TIDY`).
+If you change the project name in the `project(...)` declaration, update any project-specific cache variables in [`CMakePresets.json`](./CMakePresets.json) and [`package.nix`](./package.nix) (for example, `CPPTEMPLATE_SANITIZERS` and `CPPTEMPLATE_ENABLE_CLANG_TIDY`).
 
 A quick way to do this is:
 
 ```bash
-sed -i 's/cpptemplate/myproject/g; s/CPPTEMPLATE/MYPROJECT/g' CMakeLists.txt CMakePresets.json
+sed -i 's/cpptemplate/myproject/g; s/CPPTEMPLATE/MYPROJECT/g' CMakeLists.txt CMakePresets.json package.nix
 ```
 
 > [!NOTE]
