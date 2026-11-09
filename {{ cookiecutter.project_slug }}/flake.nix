@@ -6,7 +6,7 @@
 
     # CMake helpers providing package(), workspace() and the tooling targets.
     cookie-cmake = {
-      url = "github:KingPixelKP/Cookie-Cmake/2a97a9f9ace938eeaf5b8ba6a1f1199db4d870eb";
+      url = "github:KingPixelKP/Cookie-Cmake";
       flake = false;
     };
   };
@@ -82,27 +82,33 @@
         }
       );
 
-      devShells = forAllSystems (pkgs: {
-        default = pkgs.mkShell {
-          inputsFrom = [ self.packages.${pkgs.stdenv.hostPlatform.system}.default ]; # same deps as the build
+      devShells = forAllSystems (
+        pkgs:
+        let
+          package = self.packages.${pkgs.stdenv.hostPlatform.system}.default;
+        in
+        {
+          default = pkgs.mkShell {
+            inputsFrom = [ package ]; # same deps as the build
 
-          # dev-only extras
-          packages = [
-            pkgs.clang-tools
-            pkgs.gdb
-            pkgs.gcovr
-            pkgs.gbenchmark
+            # dev-only extras, plus the "bench" entries from deps.json
+            packages = [
+              pkgs.clang-tools
+              pkgs.gdb
+              pkgs.gcovr
 {%- if cookiecutter.include_docs == "y" %}
-            pkgs.doxygen
+              pkgs.doxygen
 {%- endif %}
-            # Cookie-Cmake links with lld when it finds one; provide Nix's
-            # wrapped lld so a host /usr/bin/ld.lld isn't used, which would
-            # skip the store-path RPATHs (gtest, fmt, libstdc++).
-            pkgs.llvmPackages.bintools
-          ];
+              # Cookie-Cmake links with lld when it finds one; provide Nix's
+              # wrapped lld so a host /usr/bin/ld.lld isn't used, which would
+              # skip the store-path RPATHs (gtest, fmt, libstdc++).
+              pkgs.llvmPackages.bintools
+            ]
+            ++ package.benchInputs;
 
-          COOKIE_CMAKE_DIR = "${cookie-cmake}";
-        };
-      });
+            COOKIE_CMAKE_DIR = "${cookie-cmake}";
+          };
+        }
+      );
     };
 }

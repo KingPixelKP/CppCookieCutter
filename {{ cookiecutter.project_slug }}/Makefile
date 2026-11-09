@@ -1,10 +1,15 @@
 # Thin wrapper over the CMake presets and flake outputs, so every command works
 # from any shell without direnv. Build logic lives in CMakePresets.json and flake.nix.
 #
-#   make test PRESET=asan
+#   make test PRESET=asan FILTER=Vec
+#   make run EXAMPLE=vector_example ARGS="--flag"
 
 PRESET ?= debug
 BUILD_DIR := .build/$(PRESET)
+{%- if cookiecutter.project_type in ["app", "hybrid"] %}
+BIN ?= {{ cookiecutter.project_slug }}
+{%- endif %}
+KIND ?= build
 
 # Inside `nix develop` or direnv run tools directly; otherwise enter the dev shell per command.
 ifdef IN_NIX_SHELL
@@ -13,7 +18,15 @@ else
 NIX := nix develop --command
 endif
 
-.PHONY: help configure build test{% if cookiecutter.project_type in ["app", "hybrid"] %} run{% endif %} format check static shell clean
+# Runs every executable in $(1) (a directory pattern such as */bench/*) from its
+# own directory, so its data/ folder resolves. $(2) restricts it to one name.
+define run_executables
+	@exes=$$(find $(BUILD_DIR) -type f -perm -u+x -path '$(1)$(if $(2),$(2),*)' | sort); \
+	if [ -z "$$exes" ]; then echo "No executable matching $(1)$(2) in $(BUILD_DIR)" >&2; exit 1; fi; \
+	for exe in $$exes; do (cd "$$(dirname "$$exe")" && "./$$(basename "$$exe")" $(ARGS)) || exit 1; done
+endef
+
+.PHONY: help configure build test run bench add format check static shell clean
 .DEFAULT_GOAL := help
 
 help: ## Show this help
@@ -28,13 +41,27 @@ configure: $(BUILD_DIR)/CMakeCache.txt ## Configure PRESET (default: debug)
 build: configure ## Build PRESET
 	$(NIX) cmake --build --preset $(PRESET)
 
-test: build ## Build and run the tests for PRESET
-	$(NIX) ctest --preset $(PRESET)
-{%- if cookiecutter.project_type in ["app", "hybrid"] %}
+test: build ## Run the tests; FILTER=<regex> selects tests by name
+	$(NIX) ctest --preset $(PRESET) $(if $(FILTER),--tests-regex '$(FILTER)')
 
-run: build ## Build and run the main executable
-	cd $(BUILD_DIR)/bin && ./{{ cookiecutter.project_slug }}
+{% if cookiecutter.project_type in ["app", "hybrid"] -%}
+run: build ## Run the main executable, BIN=<name> or EXAMPLE=<name>; ARGS="..." passes arguments
+{%- else -%}
+run: build ## Run BIN=<name> or EXAMPLE=<name>; ARGS="..." passes arguments
 {%- endif %}
+	$(call run_executables,$(if $(EXAMPLE),*/example/,*/bin/),$(or $(EXAMPLE),$(BIN)))
+
+bench: ## Build the bench preset and run all benchmarks, or BENCH=<name>
+	@$(MAKE) --no-print-directory build PRESET=bench
+	$(MAKE) --no-print-directory run-benchmarks PRESET=bench
+
+.PHONY: run-benchmarks
+run-benchmarks:
+	$(call run_executables,*/benchmark/,$(BENCH))
+
+add: ## Add a nixpkgs library to deps.json: DEP=<attr> [KIND=build|test|bench] [PACKAGE=<name>] [VERSION=<range>] [COMPONENTS="A B"]
+	$(NIX) cmake -DDEP='$(DEP)' -DKIND='$(KIND)' -DPACKAGE='$(PACKAGE)' -DVERSION='$(VERSION)' -DCOMPONENTS='$(COMPONENTS)' -P cmake/add-dependency.cmake
+	@echo "Reload the dev shell (exit and re-enter, or let direnv reload) to use it."
 
 format: ## Format Nix and C/C++ files
 	nix fmt

@@ -1,13 +1,23 @@
 {
   lib,
   stdenv,
+  pkgs,
   cmake,
   ninja,
-  fmt,
-  gtest,
   cookie-cmake,
 }:
 
+let
+  # deps.json is the single dependency manifest: its keys are nixpkgs attribute
+  # paths (e.g. "fmt", "qt6.qtbase"), and Cookie-Cmake's dependencies() runs
+  # find_package() for the same entries.
+  deps = lib.importJSON ./deps.json;
+  depsOfKind =
+    kinds:
+    map (name: lib.getAttrFromPath (lib.splitString "." name) pkgs) (
+      builtins.filter (name: builtins.elem (deps.${name}.kind or "build") kinds) (builtins.attrNames deps)
+    );
+in
 stdenv.mkDerivation {
   pname = "{{ cookiecutter.project_slug }}";
   version = "{{ cookiecutter.project_version }}";
@@ -18,9 +28,9 @@ stdenv.mkDerivation {
     cmake
     ninja
   ]; # build-time tools
-  buildInputs = [
-    fmt
-    gtest
+  buildInputs = depsOfKind [
+    "build"
+    "test"
   ]; # libraries to link against
 
   cmakeFlags = [
@@ -31,4 +41,7 @@ stdenv.mkDerivation {
   ];
 
   doCheck = true; # runs ctest during `nix build`
+
+  # Benchmark libraries are only needed in the dev shell.
+  passthru.benchInputs = depsOfKind [ "bench" ];
 }

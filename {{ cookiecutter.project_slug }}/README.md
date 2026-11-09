@@ -68,10 +68,15 @@ the dev shell, each command runs through `nix develop` for you:
 make            # list targets
 make build      # configure (first time) and build the debug preset
 make test       # build and run the tests
+make test FILTER=Vec              # only tests whose name matches
+make test PRESET=asan
 {%- if cookiecutter.project_type in ["app", "hybrid"] %}
 make run        # build and run the main executable
+make run ARGS="--help"            # pass arguments
 {%- endif %}
-make test PRESET=asan
+make run EXAMPLE=vector_example   # run an example (or BIN=<name> for bin/ executables)
+make bench      # release build with benchmarks, runs them all (BENCH=<name> for one)
+make add DEP=spdlog               # add a library, like `cargo add`
 make format     # nix fmt
 make check      # nix flake check, same as CI
 make static     # fully static release build into ./result
@@ -115,11 +120,50 @@ when tests and benchmarks are enabled. Examples and benchmarks are discovered fr
 
 ## Adding Libraries
 
-Libraries come from [nixpkgs](https://search.nixos.org/packages). To add one:
+Libraries come from [nixpkgs](https://search.nixos.org/packages) and are listed once, in
+[`deps.json`](./deps.json). Nix installs every entry (see [`package.nix`](./package.nix)) and
+Cookie-Cmake's `dependencies()` runs `find_package` for it:
 
-1. Add the nixpkgs attribute to the function arguments and `buildInputs` in [`package.nix`](./package.nix).
-2. Add the matching `find_package(<Name> CONFIG REQUIRED)` to [`CMakeLists.txt`](./CMakeLists.txt).
-3. Link the target, for example with `BIN_DEPS` / `LIB_DEPS` in `package(...)`.
+```json
+{
+  "fmt": { "package": "fmt" },
+  "gtest": { "package": "GTest", "kind": "test" },
+  "gbenchmark": { "package": "benchmark", "kind": "bench" }
+}
+```
+
+The key is the nixpkgs attribute, `package` is the `find_package` name, and `kind` is `build`
+(default), `test` (only with tests) or `bench` (only with benchmarks, and in the dev shell).
+
+Packages split into components (Qt, Boost) list the ones you need, which become
+`find_package(... COMPONENTS ...)`:
+
+```json
+"qt6.qtbase": { "components": ["Core", "Widgets"], "package": "Qt6" }
+```
+
+An optional `version` guards against `nix flake update` moving a library somewhere you did not
+expect. It takes a minimum (`"11.1"`) or a range (`"11...<13"`), and configuring fails when the
+locked nixpkgs version does not satisfy it:
+
+```json
+"fmt": { "package": "fmt", "version": "11...<13" }
+```
+
+It checks the version; it does not choose one. Every library comes from the single nixpkgs
+revision in `flake.lock`, so there is one version per library, as with a `Cargo.lock`.
+
+`make add` fills in the entry for you. It builds the package from the locked nixpkgs, finds its
+CMake package name and lists the targets it exports:
+
+```bash
+make add DEP=spdlog
+make add DEP=catch2_3 KIND=test
+make add DEP=qt6.qtbase PACKAGE=Qt6 COMPONENTS="Core Widgets"
+make add DEP=pugixml VERSION="1.14...<2"
+```
+
+Then link a target from `package(...)`, for example `DEPS spdlog::spdlog`.
 
 Common libraries:
 

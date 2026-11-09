@@ -58,7 +58,7 @@ if(CCACHE_PROGRAM)
   set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
   set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
 else()
-  message(WARNING "ccache not found; compiler launcher will not be configured")
+  message(STATUS "ccache not found; compiler launcher will not be configured")
 endif()
 
 # Cookie-Cmake helpers (package(), workspace(), tooling). The flake pins the
@@ -84,16 +84,8 @@ include(cookie)
 # Tools
 configure_project_tooling()
 
-# Dependencies (provided by Nix, see package.nix)
-find_package(fmt CONFIG REQUIRED)
-
-if(${PROJECT_NAME_UPPER}_BUILD_TESTS)
-  find_package(GTest CONFIG REQUIRED)
-endif()
-
-if(${PROJECT_NAME_UPPER}_BUILD_BENCHMARKS)
-  find_package(benchmark CONFIG REQUIRED)
-endif()
+# Dependencies: find_package() for every entry in deps.json (Nix provides them, see package.nix)
+dependencies()
 
 if(${PROJECT_NAME_UPPER}_BUILD_DOCS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/docs/CMakeLists.txt")
   add_subdirectory(docs)
@@ -108,17 +100,12 @@ set(EXCLUDED_WORKSPACE_MEMBERS
   docs
 )
 
-# workspace() fails when it finds no members, so skip it until libs/ has one.
-file(GLOB _workspace_lib_lists CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/libs/*/CMakeLists.txt")
-
-if(_workspace_lib_lists)
-  workspace(
-    DISCOVER
-    libs
-    EXCLUDE
-    ${EXCLUDED_WORKSPACE_MEMBERS}
-  )
-endif()
+workspace(
+  DISCOVER
+  libs
+  EXCLUDE
+  ${EXCLUDED_WORKSPACE_MEMBERS}
+)
 
 {% if cookiecutter.project_type in ["app", "hybrid"] %}
 

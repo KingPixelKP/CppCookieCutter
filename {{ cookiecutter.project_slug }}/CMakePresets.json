@@ -56,6 +56,15 @@
       "cacheVariables": {
         "{{ cookiecutter.upper_project_slug }}_ENABLE_CLANG_TIDY": "ON"
       }
+    },
+    {
+      "name": "bench",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "{{ cookiecutter.upper_project_slug }}_BUILD_BENCHMARKS": "ON",
+        "{{ cookiecutter.upper_project_slug }}_BUILD_TESTS": "OFF"
+      }
     }
   ],
   "buildPresets": [
@@ -87,6 +96,11 @@
     {
       "name": "clang-tidy",
       "configurePreset": "clang-tidy",
+      "jobs": 0
+    },
+    {
+      "name": "bench",
+      "configurePreset": "bench",
       "jobs": 0
     }
   ],
