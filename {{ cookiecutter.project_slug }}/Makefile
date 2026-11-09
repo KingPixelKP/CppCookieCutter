@@ -32,13 +32,15 @@ endef
 help: ## Show this help
 	@grep -E '^[a-z]+:.*## ' $(MAKEFILE_LIST) | awk -F ':.*## ' '{ printf "  %-10s %s\n", $$1, $$2 }'
 
-# Configure only when the build directory is missing; Ninja re-runs CMake when CMakeLists change.
+# build/docs configure only when the build directory is missing: after that Ninja
+# re-runs CMake itself when CMakeLists.txt, deps.json or the libs/ folders change.
 $(BUILD_DIR)/CMakeCache.txt:
 	$(NIX) cmake --preset $(PRESET)
 
-configure: $(BUILD_DIR)/CMakeCache.txt ## Configure PRESET (default: debug)
+configure: ## (Re)configure PRESET (default: debug)
+	$(NIX) cmake --preset $(PRESET)
 
-build: configure ## Build PRESET
+build: $(BUILD_DIR)/CMakeCache.txt ## Build PRESET
 	$(NIX) cmake --build --preset $(PRESET)
 
 test: build ## Run the tests; FILTER=<regex> selects tests by name
@@ -67,7 +69,7 @@ coverage: ## Run the tests with coverage; HTML report in .build/coverage/coverag
 	@echo "Report: .build/coverage/coverage/index.html"
 
 {% if cookiecutter.include_docs == "y" -%}
-docs: configure ## Build the Doxygen docs into .build/PRESET/docs/html
+docs: $(BUILD_DIR)/CMakeCache.txt ## Build the Doxygen docs into .build/PRESET/docs/html
 	$(NIX) cmake --build --preset $(PRESET) --target {{ cookiecutter.project_slug }}_docs
 	@echo "Docs: $(BUILD_DIR)/docs/html/index.html"
 
