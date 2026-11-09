@@ -26,7 +26,7 @@ define run_executables
 	for exe in $$exes; do (cd "$$(dirname "$$exe")" && "./$$(basename "$$exe")" $(ARGS)) || exit 1; done
 endef
 
-.PHONY: help configure build test run bench coverage add format check static shell clean
+.PHONY: help configure build test run bench coverage{% if cookiecutter.include_docs == "y" %} docs{% endif %} add format check static shell clean
 .DEFAULT_GOAL := help
 
 help: ## Show this help
@@ -66,6 +66,12 @@ coverage: ## Run the tests with coverage; HTML report in .build/coverage/coverag
 	$(NIX) cmake --build --preset coverage --target coverage-report
 	@echo "Report: .build/coverage/coverage/index.html"
 
+{% if cookiecutter.include_docs == "y" -%}
+docs: configure ## Build the Doxygen docs into .build/PRESET/docs/html
+	$(NIX) cmake --build --preset $(PRESET) --target {{ cookiecutter.project_slug }}_docs
+	@echo "Docs: $(BUILD_DIR)/docs/html/index.html"
+
+{% endif -%}
 add: ## Add a nixpkgs library to deps.json: DEP=<attr> [KIND=build|test|bench] [PACKAGE=<name>] [VERSION=<range>] [COMPONENTS="A B"]
 	$(NIX) cmake -DDEP='$(DEP)' -DKIND='$(KIND)' -DPACKAGE='$(PACKAGE)' -DVERSION='$(VERSION)' -DCOMPONENTS='$(COMPONENTS)' -P cmake/add-dependency.cmake
 	@echo "Reload the dev shell (exit and re-enter, or let direnv reload) to use it."

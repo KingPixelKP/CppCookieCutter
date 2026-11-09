@@ -231,8 +231,10 @@ from fresh counters, and prints the line and branch coverage summary.
 Build the Doxygen docs with:
 
 ```bash
-cmake --build --preset debug --target docs
+make docs       # or: cmake --build --preset debug --target {{ cookiecutter.project_slug }}_docs
 ```
+
+The HTML output lands in `.build/debug/docs/html/index.html`.
 {% endif %}
 
 {% if cookiecutter.include_install_rules == "y" %}
