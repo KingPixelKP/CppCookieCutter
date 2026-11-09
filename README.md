@@ -78,3 +78,8 @@ After generating the project, refer to:
 ```text
 {{ cookiecutter.project_slug }}/README.md
 ```
+
+## License
+
+The template is licensed under [MIT-0](./LICENSE): generated projects owe it nothing and can use
+any license, including proprietary. Pick the generated project's own license with the `license` prompt.
