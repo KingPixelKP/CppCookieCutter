@@ -26,7 +26,7 @@ define run_executables
 	for exe in $$exes; do (cd "$$(dirname "$$exe")" && "./$$(basename "$$exe")" $(ARGS)) || exit 1; done
 endef
 
-.PHONY: help configure build test run bench add format check static shell clean
+.PHONY: help configure build test run bench coverage add format check static shell clean
 .DEFAULT_GOAL := help
 
 help: ## Show this help
@@ -58,6 +58,13 @@ bench: ## Build the bench preset and run all benchmarks, or BENCH=<name>
 .PHONY: run-benchmarks
 run-benchmarks:
 	$(call run_executables,*/benchmark/,$(BENCH))
+
+coverage: ## Run the tests with coverage; HTML report in .build/coverage/coverage/
+	@$(MAKE) --no-print-directory build PRESET=coverage
+	@# Counters accumulate across runs; start from zero so the report matches this run.
+	find .build/coverage -name '*.gcda' -delete
+	$(NIX) cmake --build --preset coverage --target coverage-report
+	@echo "Report: .build/coverage/coverage/index.html"
 
 add: ## Add a nixpkgs library to deps.json: DEP=<attr> [KIND=build|test|bench] [PACKAGE=<name>] [VERSION=<range>] [COMPONENTS="A B"]
 	$(NIX) cmake -DDEP='$(DEP)' -DKIND='$(KIND)' -DPACKAGE='$(PACKAGE)' -DVERSION='$(VERSION)' -DCOMPONENTS='$(COMPONENTS)' -P cmake/add-dependency.cmake

@@ -76,6 +76,7 @@ make run ARGS="--help"            # pass arguments
 {%- endif %}
 make run EXAMPLE=vector_example   # run an example (or BIN=<name> for bin/ executables)
 make bench      # release build with benchmarks, runs them all (BENCH=<name> for one)
+make coverage   # tests with coverage, HTML report + summary (gcovr)
 make add DEP=spdlog               # add a library, like `cargo add`
 make format     # nix fmt
 make check      # nix flake check, same as CI
@@ -221,7 +222,8 @@ cmake --build --preset coverage --target coverage-report
 ```
 
 When `gcovr` is available, the `coverage-report` target writes HTML and XML
-reports under `.build/coverage/coverage/`.
+reports under `.build/coverage/coverage/`. `make coverage` does all of the above in one step, starts
+from fresh counters, and prints the line and branch coverage summary.
 
 {% if cookiecutter.include_docs == "y" %}
 ## Documentation
