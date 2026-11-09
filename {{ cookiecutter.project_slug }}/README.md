@@ -259,6 +259,14 @@ target_link_libraries(my_target PRIVATE {{ cookiecutter.project_slug }}::math)
 {% endif %}
 
 
+## Safety Checks
+
+Every target builds with strict warnings as errors (`-Wall -Wextra -Wpedantic -Werror`, plus
+conversion, shadowing, old-style-cast and similar checks from Cookie-Cmake). Debug builds, and the
+`asan`, `tsan` and `coverage` presets built on them, also enable libstdc++ assertions: an
+out-of-range `operator[]` or `front()` on an empty container aborts with a message instead of
+reading past the end, much like a Rust panic.
+
 ## Sanitizers
 
 Configure and build with AddressSanitizer and UndefinedBehaviorSanitizer:
